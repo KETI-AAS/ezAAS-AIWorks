@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:18-slim AS builder
 WORKDIR /app
 
 # Install pnpm via corepack
@@ -10,7 +10,7 @@ RUN pnpm install --frozen-lockfile || pnpm install
 COPY . .
 RUN pnpm build
 
-FROM node:18-alpine AS runner
+FROM node:18-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
