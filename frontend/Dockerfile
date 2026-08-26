@@ -1,8 +1,8 @@
 FROM node:18-slim AS builder
 WORKDIR /app
 
-# Install pnpm via corepack
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm globally (avoid corepack issues inside container)
+RUN npm install -g pnpm@7
 
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile || pnpm install
