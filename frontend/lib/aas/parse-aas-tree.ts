@@ -117,9 +117,9 @@ function mapSubmodelNode(
     rawData,
     conceptDescription: linkedConceptDescription(obj.semanticId, conceptDescriptions),
     value: scalarValue(obj.value),
-    badge: obj.valueType,
-    valueType: obj.valueType,
-    contentType: obj.contentType,
+    badge: typeof raw.valueType === "string" ? (raw.valueType as string) : undefined,
+    valueType: typeof raw.valueType === "string" ? (raw.valueType as string) : undefined,
+    contentType: typeof raw.contentType === "string" ? (raw.contentType as string) : undefined,
     description: firstText(obj.description),
     semanticId: obj.semanticId,
     children: structuralChildren.map((child, index) =>
