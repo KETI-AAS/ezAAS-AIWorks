@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.venv/
+dist/
+build/
+*.log
+data/
+models/
+artifacts/
+frontend/pnpm-lock.yaml
+tmp_frontend/
