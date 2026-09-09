@@ -1,3 +1,51 @@
+# frontend
+
+공통 Next.js App Router 기반 프론트엔드 베이스입니다.
+
+사용 기술
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- pnpm
+
+설치
+```bash
+cd frontend
+pnpm install
+```
+
+로컬 실행
+```bash
+cd frontend
+pnpm dev
+```
+
+빌드
+```bash
+cd frontend
+pnpm build
+```
+
+환경변수
+환경값은 `.env`에 작성하되 `.env.example`를 참조하세요.
+
+주요 폴더 구조
+- `app/`: Next.js route, layout, page 등
+- `components/`: UI 및 서비스별 컴포넌트
+- `hooks/`: 공통 hooks
+- `lib/`: API 클라이언트 및 유틸
+- `types/`: 공통 타입
+- `public/`: 정적자원
+
+서비스별 코드 위치
+- Capability Discovery: `app/(dashboard)/capability-discovery`, `components/capability-discovery`, `lib/api/capability-discovery.ts`
+- Dataset Orchestration: `app/(dashboard)/dataset-orchestration`, `components/dataset-orchestration`, `lib/api/dataset-orchestration.ts`
+- AI Deploy: `app/(dashboard)/ai-deploy`, `components/ai-deploy`, `lib/api/ai-deploy.ts`
+
+shadcn/ui 컴포넌트 추가 방법
+1. `pnpm exec shadcn-ui add`를 사용해 컴포넌트를 생성합니다.
+2. `components/ui`에 생성된 파일을 확인하고 필요한 경우 스타일을 조정하세요.
 # ezAAS AI Capability Registry
 
 AAS(Asset Administration Shell)를 기반으로 AI 모델과 데이터셋을 등록하고,
