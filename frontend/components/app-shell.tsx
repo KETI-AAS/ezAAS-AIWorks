@@ -66,7 +66,7 @@ function Brand() {
         <Layers className="size-5" />
       </span>
       <span className="flex flex-col leading-tight">
-        <span className="text-sm font-semibold">Model Registry</span>
+        <span className="text-sm font-semibold">ezAAS Works</span>
         <span className="text-xs text-muted-foreground">AI 모델 탐색 플랫폼</span>
       </span>
     </Link>
