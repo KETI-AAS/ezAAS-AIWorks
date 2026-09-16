@@ -12,7 +12,6 @@ import {
   LoaderCircle,
   Rows3,
   Sparkles,
-  Upload,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -263,10 +262,19 @@ export function DataPreprocessingStep({
         )}
 
         <div className="flex flex-col gap-3 border-t border-border px-5 py-5 lg:flex-row lg:items-center lg:justify-between">
-          <Button type="button" variant="outline" onClick={onReupload} className="border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100">
-            <Upload className="size-4" />
-            데이터 재업로드
-          </Button>
+          {isComplete ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={downloadCsv}
+              className="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+            >
+              <Download className="size-4" />
+              데이터 다운로드
+            </Button>
+          ) : (
+            <span aria-hidden />
+          )}
           <div className="flex flex-col-reverse gap-2 sm:flex-row">
             <Button type="button" variant="outline" onClick={onBack}>
               <ArrowLeft className="size-4" />

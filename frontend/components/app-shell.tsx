@@ -1,11 +1,12 @@
 "use client"
 
-import { Boxes, Brain, Database, FilePlus2, Home, Layers, Link2, Menu, ShieldCheck, Sparkles } from "lucide-react"
+import { Boxes, Brain, Database, FilePlus2, Home, Layers, Link2, Menu, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 
-import { SidebarAuth } from "@/components/auth/sidebar-auth"
+import { HeaderAuth } from "@/components/auth/header-auth"
+import { JobNotificationBell } from "@/components/jobs/job-notification-bell"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -85,16 +86,6 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         </p>
         <NavLinks onNavigate={onNavigate} />
       </div>
-      <div className="rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-4">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Sparkles className="size-4 text-primary" />
-          현장 친화 AI
-        </div>
-        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-          전문 지식 없이도 모델의 목적과 결과를 직관적으로 이해할 수 있습니다.
-        </p>
-      </div>
-      <SidebarAuth />
     </div>
   )
 }
@@ -131,7 +122,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <JobNotificationBell />
             <ThemeToggle />
+            <HeaderAuth />
           </div>
         </header>
 

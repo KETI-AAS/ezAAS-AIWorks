@@ -1,7 +1,8 @@
 "use client"
 
-import { ArrowRight, Check, Database, Search, Target } from "lucide-react"
+import { ArrowRight, Check, Database, Search, Sparkles, Target, TrendingUp } from "lucide-react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 
 import { TaskBadge } from "@/components/registry/task-badge"
@@ -16,9 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { primaryMetric } from "@/lib/training-data"
 import { getDataset, getTaskThumbnail, models, type Model } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
+
+/** First sentence of a description, for compact card summaries. */
+function firstSentence(text: string): string {
+  const match = text.match(/^.*?[.!?。](\s|$)/)
+  return (match ? match[0] : text).trim()
+}
 
 const ALL = "전체"
 
@@ -151,16 +157,30 @@ function SelectableModelCard({
   selected: boolean
   onSelect: () => void
 }) {
+  const router = useRouter()
   const dataset = getDataset(model.datasetId)
-  const metric = primaryMetric(model)
+  const summary = firstSentence(model.description)
+
+  const infoRows = [
+    { icon: Target, label: "적용 분야", value: model.application },
+    { icon: Sparkles, label: "주요 기능", value: model.mainFunction },
+    { icon: TrendingUp, label: "기대 효과", value: model.expectedEffect },
+  ]
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onSelect()
+        }
+      }}
       aria-pressed={selected}
       className={cn(
-        "group flex h-full flex-col overflow-hidden rounded-xl border bg-card text-left transition-all duration-200",
+        "group flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-card text-left outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary/40",
         selected
           ? "border-primary ring-2 ring-primary/30"
           : "border-border hover:-translate-y-0.5 hover:shadow-md hover:shadow-foreground/5",
@@ -198,26 +218,44 @@ function SelectableModelCard({
             {model.version}
           </Badge>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant="secondary" className="font-mono text-xs">
-            {model.framework}
-          </Badge>
-          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <Target className="size-3.5 text-primary" />
-            {metric.label}
-            <span className="font-mono font-semibold text-foreground">
-              {metric.value}
-            </span>
-          </span>
-        </div>
         <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-          {model.description}
+          {summary}
         </p>
-        <div className="mt-auto flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
-          <Database className="size-3.5" />
-          <span className="truncate">{dataset?.name ?? "—"}</span>
+
+        <div className="flex flex-col gap-2 border-t border-border pt-3">
+          {infoRows.map((row) => (
+            <div key={row.label} className="flex items-start gap-2 text-xs">
+              <row.icon className="mt-0.5 size-3.5 shrink-0 text-primary" />
+              <span className="shrink-0 text-muted-foreground">{row.label}</span>
+              <span className="min-w-0 flex-1 text-right font-medium text-foreground">
+                {row.value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-auto rounded-lg bg-muted/40 px-3 py-2.5">
+          <p className="text-[11px] text-muted-foreground">기존 학습 데이터셋</p>
+          {dataset ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                router.push(`/datasets/${dataset.id}`)
+              }}
+              className="mt-0.5 flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+            >
+              <Database className="size-3.5 shrink-0" />
+              <span className="truncate">{dataset.name}</span>
+            </button>
+          ) : (
+            <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Database className="size-3.5 shrink-0" />
+              연결된 데이터셋 없음
+            </p>
+          )}
         </div>
       </div>
-    </button>
+    </div>
   )
 }

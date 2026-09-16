@@ -106,6 +106,12 @@ export interface Model {
   outputDescription: string
   supportedEnv: string[]
   purpose: string
+  /** 개요 요약: 적용 분야 (shared by Model Detail + AI Training card). */
+  application: string
+  /** 개요 요약: 주요 기능. */
+  mainFunction: string
+  /** 개요 요약: 기대 효과. */
+  expectedEffect: string
   image: string
   resultImage: string
   resultType: "Bounding Box" | "OCR" | "Segmentation" | "Before / After"
@@ -557,6 +563,9 @@ export const models: Model[] = [
     outputDescription: "차량 이미지에서 외관 결함의 위치와 종류, 검출 신뢰도를 제공합니다.",
     supportedEnv: ["Factory GPU Server", "NVIDIA Jetson", "ONNX Runtime"],
     purpose: "완성차 외관 결함 자동 검출 및 작업자 알림",
+    application: "자동차 외관 검사",
+    mainFunction: "결함 검출 및 위치 표시",
+    expectedEffect: "검사 자동화, 인력 절감, 품질 일관성 향상",
     image: "/images/models/car-inspection.png",
     resultImage: "/images/results/bbox-result.png",
     resultType: "Bounding Box",
@@ -720,6 +729,9 @@ export const models: Model[] = [
     outputDescription: "문서 이미지에서 문자를 인식하고 문자 위치와 인식 신뢰도를 제공합니다.",
     supportedEnv: ["Factory GPU Server", "CPU (ONNX)", "Web API"],
     purpose: "현장 문서 텍스트 자동 디지털화",
+    application: "현장 문서 디지털화",
+    mainFunction: "문자 인식 및 텍스트 변환",
+    expectedEffect: "문서 입력 자동화, 입력 오류 감소",
     image: "/images/models/ocr.png",
     resultImage: "/images/results/ocr-result.png",
     resultType: "OCR",
@@ -868,6 +880,9 @@ export const models: Model[] = [
     outputDescription: "센서 데이터에서 이상 여부와 고장 유형, 예상 잔여 수명을 제공합니다.",
     supportedEnv: ["Factory Edge Gateway", "Cloud Inference", "On-Prem Server"],
     purpose: "설비 고장 사전 예측 및 정비 계획 최적화",
+    application: "설비 예지보전",
+    mainFunction: "이상 감지 및 고장 유형 분류",
+    expectedEffect: "비계획 정지 감소, 정비 계획 최적화",
     image: "/images/models/predictive.png",
     resultImage: "/images/results/timeseries-result.png",
     resultType: "Before / After",
@@ -1016,6 +1031,9 @@ export const models: Model[] = [
     outputDescription: "PCB 이미지에서 결함 영역을 분할하고 결함 종류와 면적 정보를 제공합니다.",
     supportedEnv: ["Factory GPU Server", "Inspection Workstation"],
     purpose: "PCB 미세 결함 영역 자동 분할 및 정량화",
+    application: "PCB 품질 검사",
+    mainFunction: "결함 영역 분할 및 면적 정량화",
+    expectedEffect: "미세 결함 판정 자동화, 품질 일관성 향상",
     image: "/images/models/pcb-defect.png",
     resultImage: "/images/results/segmentation-result.png",
     resultType: "Segmentation",
@@ -1099,7 +1117,7 @@ export const models: Model[] = [
         stage: "Model",
         title: "PCB 세그멘테이션 v1.5",
         subtitle: "mIoU 91%",
-        detail: "픽셀 단위 분할 정확도 mIoU 91%를 달성한 모델입니다.",
+        detail: "픽셀 단��� 분할 정확도 mIoU 91%를 달성한 모델입니다.",
         meta: [
           { label: "mIoU", value: "91%" },
           { label: "크기", value: "182 MB" },
