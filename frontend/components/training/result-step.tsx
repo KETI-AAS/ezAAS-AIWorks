@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, ArrowRight, CircleCheck, RotateCcw } from "lucide-react"
+import { ArrowLeft, CircleCheck, Download, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -27,6 +27,13 @@ export function ResultStep({
 }) {
   const newVersion = nextVersion(model.version)
   const completedAt = "2024-06-01 10:28:45"
+
+  // TODO: 실제 학습 결과 artifact/model file 다운로드 API가 준비되면 여기에 연결합니다.
+  // 예: const res = await fetch(`/api/training/jobs/${jobId}/artifact`); ... 로 받은
+  // URL 또는 Blob을 사용해 다운로드를 트리거하도록 교체하세요.
+  const handleModelDownload = () => {
+    toast.info("모델 다운로드는 학습 결과 파일 API 연동 후 제공됩니다.")
+  }
 
   return (
     <Card>
@@ -114,17 +121,9 @@ export function ResultStep({
               <RotateCcw />
               새 학습 시작
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => toast.info("모델 상세 화면으로 이동합니다")}
-            >
-              모델 상세 보기
-            </Button>
-            <Button
-              onClick={() => toast.success("새 모델이 Model Registry에 등록되었습니다")}
-            >
-              Model Registry에 등록
-              <ArrowRight />
+            <Button onClick={handleModelDownload}>
+              모델 다운로드
+              <Download />
             </Button>
           </div>
         </div>
