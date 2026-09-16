@@ -26,13 +26,20 @@ export function TrainingStepper({
   return (
     <Card size="sm">
       <CardContent className="py-1">
-        <ol className="flex items-center gap-1 overflow-x-auto">
+        <ol className="flex w-full items-center overflow-x-auto">
           {TRAINING_STEPS.map((label, index) => {
             const stepNumber = index + 1
             const isComplete = stepNumber < currentStep
             const isCurrent = stepNumber === currentStep
+
             return (
-              <li key={label} className="flex min-w-0 items-center gap-1">
+              <li
+                key={label}
+                className={cn(
+                  "flex min-w-max items-center",
+                  index < TRAINING_STEPS.length - 1 && "flex-1",
+                )}
+              >
                 <button
                   type="button"
                   onClick={() => onStepClick(stepNumber)}
@@ -45,12 +52,13 @@ export function TrainingStepper({
                       isComplete && "bg-primary text-primary-foreground",
                       isCurrent && "bg-primary text-primary-foreground",
                       !isComplete &&
-                        !isCurrent &&
-                        "border border-border bg-muted text-muted-foreground",
+                      !isCurrent &&
+                      "border border-border bg-muted text-muted-foreground",
                     )}
                   >
                     {isComplete ? <Check className="size-3.5" /> : stepNumber}
                   </span>
+
                   <span
                     className={cn(
                       "whitespace-nowrap text-sm",
@@ -64,8 +72,9 @@ export function TrainingStepper({
                     {label}
                   </span>
                 </button>
+
                 {index < TRAINING_STEPS.length - 1 && (
-                  <Separator className="mx-1.5 hidden w-6 shrink-0 lg:block" />
+                  <Separator className="mx-3 hidden min-w-4 flex-1 lg:block" />
                 )}
               </li>
             )
