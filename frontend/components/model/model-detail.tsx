@@ -229,9 +229,9 @@ export function ModelDetail({ model }: { model: Model }) {
   }))
 
   const summaryItems = [
-    { icon: Target, label: "적용 분야", value: "자동차 외관 검사" },
-    { icon: Boxes, label: "주요 기능", value: "결함 검출 및 위치 표시" },
-    { icon: TrendingUp, label: "기대 효과", value: "검사 자동화, 인력 절감, 품질 일관성 향상" },
+    { icon: Target, label: "적용 분야", value: model.application },
+    { icon: Boxes, label: "주요 기능", value: model.mainFunction },
+    { icon: TrendingUp, label: "기대 효과", value: model.expectedEffect },
   ]
 
   const perfMetrics = [
@@ -318,9 +318,7 @@ export function ModelDetail({ model }: { model: Model }) {
                   <SectionTitle icon={Target}>모델 설명</SectionTitle>
 
                   <p className="mt-5 text-base leading-7 text-muted-foreground text-pretty">
-                    자동차 생산 라인에서 촬영한 차량 이미지를 분석해 스크래치, 덴트,
-                    도장 불량 등 외관 결함을 자동으로 검출하는 모델입니다. 육안 검사에
-                    의존하던 외관 품질 확인을 자동화해 검사 속도와 일관성을 높입니다.
+                    {model.description}
                   </p>
 
                   <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">

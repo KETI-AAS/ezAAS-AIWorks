@@ -5,6 +5,7 @@ import './globals.css'
 
 import { AppShell } from '@/components/app-shell'
 import { AuthProvider } from '@/components/auth/auth-provider'
+import { BackgroundJobProvider } from '@/components/jobs/background-job-provider'
 import { RefreshLoadingOverlay } from '@/components/refresh-loading-overlay'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -42,7 +43,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <style>{`html[data-refreshing='true'] #refresh-loading-overlay { display: flex; }`}</style>
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {
@@ -69,7 +69,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <AppShell>{children}</AppShell>
+            <BackgroundJobProvider>
+              <AppShell>{children}</AppShell>
+            </BackgroundJobProvider>
           </AuthProvider>
           <Toaster />
         </ThemeProvider>
