@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 
 import { AppShell } from '@/components/app-shell'
@@ -41,11 +42,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} bg-background`}
       suppressHydrationWarning
     >
-      <head>
-        <style>{`html[data-refreshing='true'] #refresh-loading-overlay { display: flex; }`}</style>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(() => {
+      <body className="font-sans antialiased">
+        <Script id="refresh-detection" strategy="beforeInteractive">
+          {`(() => {
               const navigation = performance.getEntriesByType('navigation')[0];
               const isReload = navigation?.type === 'reload' || performance.navigation?.type === 1;
               if (!isReload) return;
@@ -56,11 +55,8 @@ export default function RootLayout({
                 delete root.dataset.refreshing;
                 delete root.dataset.refreshStartedAt;
               }, 5000);
-            })();`,
-          }}
-        />
-      </head>
-      <body className="font-sans antialiased">
+            })();`}
+        </Script>
         <RefreshLoadingOverlay />
         <ThemeProvider
           attribute="class"

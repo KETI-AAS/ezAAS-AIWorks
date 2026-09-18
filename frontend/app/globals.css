@@ -168,4 +168,7 @@
   html {
     @apply font-sans;
   }
+  html[data-refreshing='true'] #refresh-loading-overlay {
+    display: flex;
+  }
 }
