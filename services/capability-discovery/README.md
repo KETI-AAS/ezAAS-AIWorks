@@ -11,3 +11,7 @@ uvicorn app.main:app --reload --port 8001
 
 기본 엔드포인트
 - `GET /health` - 서비스 상태 확인
+
+## Hub SSO prototype
+
+See [configuration and API flow](docs/HUB_SSO.md). Disabled by default; memory-only, single-worker.
