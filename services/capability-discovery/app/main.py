@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 
-from app.routes.api import router as api_router
+from app.routes.aasx import router as aasx_router
 
 
 app = FastAPI(title="capability-discovery")
-app.include_router(api_router, prefix="/api/v1")
+app.include_router(aasx_router, prefix="/api/v1")
 
 
 @app.get("/health")
