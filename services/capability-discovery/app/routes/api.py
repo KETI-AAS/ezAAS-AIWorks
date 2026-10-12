@@ -1,6 +1,7 @@
 from fastapi import APIRouter, File, UploadFile, status
 
 from app.services.aasxtojson import convert_uploaded_aasx
+from app.routes.auth import router as auth_router
 
 
 router = APIRouter()

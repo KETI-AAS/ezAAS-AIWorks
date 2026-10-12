@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 
-from app.routes.api import router as api_router
-from app.auth.router import router as auth_router
+from app.routes.api import router as api_router, auth_router
 
 
 app = FastAPI(title="capability-discovery")

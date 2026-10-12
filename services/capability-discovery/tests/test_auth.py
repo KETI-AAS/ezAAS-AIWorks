@@ -8,7 +8,7 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from app.auth import hub_client
-from app.auth.router import router
+from app.routes.auth import router
 from app.auth.dependencies import SESSION_COOKIE
 from app.auth.memory_store import MemoryStore, get_store, digest
 from app.auth.schemas import HubIdentity
