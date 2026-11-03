@@ -1,0 +1,24 @@
+{
+  "columns": {
+    "Vib_DE_RMS": {
+      "description": "구동측 진동속도 RMS",
+      "unit": "m/s",
+      "sensor": "ACC-100"
+    },
+    "Acc_DE_RMS": {
+      "description": "구동측 진동가속도 RMS",
+      "unit": "m/s²"
+    },
+    "Vib_NDE_RMS": {
+      "description": "반대측 진동속도 RMS",
+      "unit": "mm/s"
+    },
+    "Temp_Brg_F": {
+      "description": "베어링 온도",
+      "unit": "°F"
+    },
+    "Line_ID": {
+      "description": "생산 라인 코드"
+    }
+  }
+}
