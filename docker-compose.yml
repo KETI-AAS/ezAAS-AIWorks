@@ -25,6 +25,9 @@ services:
       - "8002:8002"
     environment:
       - PORT=8002
+      - SEMANTIC_MAPPING_DATA_DIR=/data
+    volumes:
+      - dataset_data:/data
     depends_on:
       - postgres
       - minio
@@ -91,3 +94,4 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  dataset_data:

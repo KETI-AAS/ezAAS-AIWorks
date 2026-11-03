@@ -1,0 +1,487 @@
+{
+  "assetAdministrationShells": [
+    {
+      "idShort": "MotorPdMModelAAS",
+      "id": "https://factory.example/aas/motor-pdm-model",
+      "modelType": "AssetAdministrationShell",
+      "assetInformation": {
+        "assetKind": "Instance",
+        "globalAssetId": "urn:factory:asset:motor-pdm-model:1"
+      },
+      "submodels": [
+        {
+          "type": "ModelReference",
+          "keys": [
+            {
+              "type": "Submodel",
+              "value": "urn:sm:motor-pdm:nameplate"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submodels": [
+    {
+      "idShort": "AIModelNameplate",
+      "id": "urn:sm:motor-pdm:nameplate",
+      "modelType": "Submodel",
+      "kind": "Instance",
+      "semanticId": {
+        "type": "ExternalReference",
+        "keys": [
+          {
+            "type": "GlobalReference",
+            "value": "https://admin-shell.io/idta/AIModelNameplate/1/0"
+          }
+        ]
+      },
+      "submodelElements": [
+        {
+          "idShort": "GeneralInformation",
+          "modelType": "SubmodelElementCollection",
+          "value": [
+            {
+              "idShort": "ModelName",
+              "modelType": "Property",
+              "valueType": "xs:string",
+              "value": "모터 베어링 이상탐지 모델"
+            },
+            {
+              "idShort": "Version",
+              "modelType": "Property",
+              "valueType": "xs:string",
+              "value": "1.0.0"
+            },
+            {
+              "idShort": "Framework",
+              "modelType": "Property",
+              "valueType": "xs:string",
+              "value": "scikit-learn"
+            }
+          ]
+        },
+        {
+          "idShort": "Inputs",
+          "modelType": "SubmodelElementCollection",
+          "value": [
+            {
+              "idShort": "Input_1",
+              "modelType": "SubmodelElementCollection",
+              "value": [
+                {
+                  "idShort": "Name",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "DE_Bearing_VibVelocity_RMS"
+                },
+                {
+                  "idShort": "DataType",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "xs:double"
+                },
+                {
+                  "idShort": "MeasurementTarget",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "모터 베어링"
+                },
+                {
+                  "idShort": "MeasurementLocation",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "구동측"
+                },
+                {
+                  "idShort": "ValueRepresentation",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "RMS"
+                },
+                {
+                  "idShort": "Order",
+                  "modelType": "Property",
+                  "valueType": "xs:int",
+                  "value": "0"
+                },
+                {
+                  "idShort": "Min",
+                  "modelType": "Property",
+                  "valueType": "xs:double",
+                  "value": "0"
+                },
+                {
+                  "idShort": "Max",
+                  "modelType": "Property",
+                  "valueType": "xs:double",
+                  "value": "50"
+                },
+                {
+                  "idShort": "Description",
+                  "modelType": "MultiLanguageProperty",
+                  "value": [
+                    {
+                      "language": "ko",
+                      "text": "구동측 베어링 진동속도 RMS"
+                    }
+                  ]
+                }
+              ],
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "urn:example:cd:DEBearingVibVelocityRMS"
+                  }
+                ]
+              }
+            },
+            {
+              "idShort": "Input_2",
+              "modelType": "SubmodelElementCollection",
+              "value": [
+                {
+                  "idShort": "Name",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "Bearing_Temperature"
+                },
+                {
+                  "idShort": "DataType",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "xs:double"
+                },
+                {
+                  "idShort": "Unit",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "°C"
+                },
+                {
+                  "idShort": "MeasurementTarget",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "모터 베어링"
+                },
+                {
+                  "idShort": "Order",
+                  "modelType": "Property",
+                  "valueType": "xs:int",
+                  "value": "1"
+                },
+                {
+                  "idShort": "Description",
+                  "modelType": "MultiLanguageProperty",
+                  "value": [
+                    {
+                      "language": "ko",
+                      "text": "베어링 온도"
+                    }
+                  ]
+                }
+              ],
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "urn:example:cd:BearingTemperature"
+                  }
+                ]
+              }
+            },
+            {
+              "idShort": "Input_3",
+              "modelType": "SubmodelElementCollection",
+              "value": [
+                {
+                  "idShort": "Name",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "Motor_Speed"
+                },
+                {
+                  "idShort": "DataType",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "xs:double"
+                },
+                {
+                  "idShort": "Unit",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "rpm"
+                },
+                {
+                  "idShort": "Order",
+                  "modelType": "Property",
+                  "valueType": "xs:int",
+                  "value": "2"
+                },
+                {
+                  "idShort": "Description",
+                  "modelType": "MultiLanguageProperty",
+                  "value": [
+                    {
+                      "language": "ko",
+                      "text": "모터 회전속도"
+                    }
+                  ]
+                }
+              ],
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "urn:example:cd:RotationalSpeed"
+                  }
+                ]
+              }
+            },
+            {
+              "idShort": "Input_4",
+              "modelType": "SubmodelElementCollection",
+              "value": [
+                {
+                  "idShort": "Name",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "Ambient_Temperature"
+                },
+                {
+                  "idShort": "DataType",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "xs:double"
+                },
+                {
+                  "idShort": "Unit",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "°C"
+                },
+                {
+                  "idShort": "Order",
+                  "modelType": "Property",
+                  "valueType": "xs:int",
+                  "value": "3"
+                },
+                {
+                  "idShort": "Required",
+                  "modelType": "Property",
+                  "valueType": "xs:boolean",
+                  "value": "false"
+                },
+                {
+                  "idShort": "Description",
+                  "modelType": "MultiLanguageProperty",
+                  "value": [
+                    {
+                      "language": "ko",
+                      "text": "주위 온도 (선택 입력)"
+                    }
+                  ]
+                }
+              ],
+              "semanticId": {
+                "type": "ExternalReference",
+                "keys": [
+                  {
+                    "type": "GlobalReference",
+                    "value": "urn:example:cd:AmbientTemperature"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "idShort": "Outputs",
+          "modelType": "SubmodelElementCollection",
+          "value": [
+            {
+              "idShort": "Output_1",
+              "modelType": "SubmodelElementCollection",
+              "value": [
+                {
+                  "idShort": "Name",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "AnomalyScore"
+                },
+                {
+                  "idShort": "DataType",
+                  "modelType": "Property",
+                  "valueType": "xs:string",
+                  "value": "xs:double"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "conceptDescriptions": [
+    {
+      "modelType": "ConceptDescription",
+      "id": "urn:example:cd:DEBearingVibVelocityRMS",
+      "idShort": "DEBearingVibVelocityRMS",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "modelType": "DataSpecificationIec61360",
+            "preferredName": [
+              {
+                "language": "ko",
+                "text": "구동측 베어링 진동속도 RMS"
+              },
+              {
+                "language": "en",
+                "text": "Drive-end bearing vibration velocity RMS"
+              }
+            ],
+            "unit": "mm/s",
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "ko",
+                "text": "모터 구동측 베어링 하우징에서 측정한 진동속도의 실효값(RMS)"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "modelType": "ConceptDescription",
+      "id": "urn:example:cd:BearingTemperature",
+      "idShort": "BearingTemperature",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "modelType": "DataSpecificationIec61360",
+            "preferredName": [
+              {
+                "language": "ko",
+                "text": "베어링 온도"
+              },
+              {
+                "language": "en",
+                "text": "Bearing temperature"
+              }
+            ],
+            "unit": "°C",
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "ko",
+                "text": "베어링 하우징 온도"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "modelType": "ConceptDescription",
+      "id": "urn:example:cd:RotationalSpeed",
+      "idShort": "RotationalSpeed",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "modelType": "DataSpecificationIec61360",
+            "preferredName": [
+              {
+                "language": "ko",
+                "text": "회전속도"
+              },
+              {
+                "language": "en",
+                "text": "Rotational speed"
+              }
+            ],
+            "unit": "rpm",
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "ko",
+                "text": "모터 축의 분당 회전수"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "modelType": "ConceptDescription",
+      "id": "urn:example:cd:AmbientTemperature",
+      "idShort": "AmbientTemperature",
+      "embeddedDataSpecifications": [
+        {
+          "dataSpecification": {
+            "type": "ExternalReference",
+            "keys": [
+              {
+                "type": "GlobalReference",
+                "value": "https://admin-shell.io/DataSpecificationTemplates/DataSpecificationIEC61360/3/0"
+              }
+            ]
+          },
+          "dataSpecificationContent": {
+            "modelType": "DataSpecificationIec61360",
+            "preferredName": [
+              {
+                "language": "ko",
+                "text": "주위 온도"
+              },
+              {
+                "language": "en",
+                "text": "Ambient temperature"
+              }
+            ],
+            "unit": "°C",
+            "dataType": "REAL_MEASURE",
+            "definition": [
+              {
+                "language": "ko",
+                "text": "설비 주변 공기 온도"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
