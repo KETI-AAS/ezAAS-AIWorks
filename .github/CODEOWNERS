@@ -1,0 +1,5 @@
+# CODEOWNERS 파일 템플릿
+# 실제 GitHub 계정이 제공되지 않은 경우 이 파일을 자동으로 채우지 마세요.
+# 형식 예시:
+# /frontend/ @org/frontend-team
+# /services/capability-discovery/ @org/capability-team

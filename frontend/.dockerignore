@@ -1,0 +1,10 @@
+.git
+node_modules
+.next
+dist
+build
+.env
+pnpm-workspace.yaml
+tmp_frontend
+frontend/pnpm-workspace.yaml.disabled
+*.log
