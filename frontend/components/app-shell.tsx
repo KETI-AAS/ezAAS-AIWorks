@@ -202,7 +202,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
-  if (pathname?.startsWith("/concepts")) return <>{children}</>
+  if (pathname?.startsWith("/concepts") || pathname?.startsWith("/v2")) return <>{children}</>
 
   return (
     <div className="min-h-svh bg-background">
