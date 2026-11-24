@@ -54,6 +54,7 @@ export function Training() {
   const [modelId, setModelId] = useState(getModel(initialId) ? initialId : "yolov8-car-inspection")
   const model = getModel(modelId)!
   const dataset = getDataset(model.datasetId)
+  const returning = Boolean(ctxId) && !params.get("model")
   const [step, setStep] = useState<Step>(params.get("view") === "result" ? "result" : params.get("model") ? "data" : "model")
   const [file, setFile] = useState<DataFile | null>(
     params.get("view") === "result" ? { name: "line2_exterior_1124.zip", summary: "사진 1,260장 · 라벨 포함" } : null,
@@ -140,6 +141,31 @@ export function Training() {
           </div>
         </div>
       </header>
+
+      {step === "model" ? (
+        <section aria-label="시작하기" className="flex flex-col gap-4 rounded-2xl bg-card p-5 ring-1 ring-border md:flex-row md:items-center md:gap-8">
+          <div className="flex flex-1 flex-col gap-1">
+            <p className="text-base font-semibold">
+              {returning ? `지난번에 고른 ${model.name}로 이어서 할 수 있어요` : "내 데이터를 올리면 고른 AI가 그 데이터를 더 배워 새 버전을 만들어요"}
+            </p>
+            <p className="text-[15px] text-muted-foreground">
+              준비물: {isImageModel(model) ? "라벨이 포함된 사진 .zip" : "센서 기록 CSV를 담은 .zip"} · 기본 데이터 {dataset?.name ?? "-"}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {returning ? (
+              <span className="text-sm text-muted-foreground">다른 AI는 아래에서 고르세요</span>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setStep("data")}
+              className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              {returning ? "이어서 데이터 올리기" : `${model.name}로 시작`} <ArrowRight aria-hidden className="size-4" />
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <ol aria-label="학습 단계" className="grid grid-cols-5 gap-2">
         {STEPS.map((s, i) => {

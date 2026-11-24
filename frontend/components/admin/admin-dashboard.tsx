@@ -1,47 +1,20 @@
 "use client"
 
-import Image from "next/image"
+import { ArrowRight, Boxes, Database, Eye, Link2, Search, X } from "lucide-react"
+import Link from "next/link"
 import { useMemo, useState } from "react"
-import {
-  AlertTriangle,
-  Boxes,
-  Clock,
-  Database,
-  Eye,
-  Link2,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Search,
-  ShieldCheck,
-  SlidersHorizontal,
-} from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  assetPairs,
-  datasets,
-  getTaskThumbnail,
-  models,
-  type TaskType,
-} from "@/lib/registry-data"
+import { StatusTag, type Tone } from "@/components/works/primitives"
+import { assetPairs, datasets, models, type TaskType } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
+import { useCaseOf } from "@/lib/works/plain"
 
-type AasType = "AI Dataset" | "AI Model" | "AI Asset Pair"
-type AasStatus = "Approved" | "Pending" | "Validation Failed"
+type AasType = "dataset" | "model" | "pair"
+type AasStatus = "passed" | "pending" | "failed"
 
 interface AasRow {
   id: string
+  href: string
   name: string
   type: AasType
   task: TaskType
@@ -49,331 +22,306 @@ interface AasRow {
   author: string
   registeredAt: string
   status: AasStatus
+  statusSource: string
 }
 
-/** Deterministic pseudo-status so the sample data has a realistic mix. */
-function statusFromRegistry(value: string): AasStatus {
-  if (value === "검증 완료") return "Approved"
-  if (value === "검증 실패") return "Validation Failed"
-  return "Pending"
+function datasetStatus(value: string): AasStatus {
+  if (value === "검증 완료") return "passed"
+  if (value === "검증 실패") return "failed"
+  return "pending"
 }
 
 function buildRows(): AasRow[] {
   const datasetRows: AasRow[] = datasets.map((d) => ({
     id: `ds-${d.id}`,
+    href: `/datasets/${d.id}`,
     name: d.name,
-    type: "AI Dataset",
+    type: "dataset",
     task: d.task,
     version: d.version,
     author: d.traceability.contactPerson,
     registeredAt: d.createdAt,
-    status: statusFromRegistry(d.validation.registryStatus),
+    status: datasetStatus(d.validation.registryStatus),
+    statusSource: `registryStatus: ${d.validation.registryStatus}`,
   }))
-
+  // Models have no status field in the registry; the previous admin derived it by index.
   const modelRows: AasRow[] = models.map((m, i) => ({
     id: `ml-${m.id}`,
+    href: `/models/${m.id}`,
     name: m.name,
-    type: "AI Model",
+    type: "model",
     task: m.task,
     version: m.version,
     author: m.versions[0]?.author ?? "AI팀",
     registeredAt: m.versions[0]?.date ?? "2024-01-01",
-    // Give models a realistic spread of statuses.
-    status: i % 3 === 0 ? "Pending" : "Approved",
+    status: i % 3 === 0 ? "pending" : "passed",
+    statusSource: "데모 값 (레지스트리에 모델 상태 필드 없음)",
   }))
-
   const pairRows: AasRow[] = assetPairs.map((p) => ({
     id: `ap-${p.id}`,
+    href: `/pairs/${p.id}`,
     name: p.title,
-    type: "AI Asset Pair",
+    type: "pair",
     task: p.task,
     version: p.version,
     author: p.model.versions[0]?.author ?? "AI팀",
     registeredAt: p.model.versions[0]?.date ?? "2024-01-01",
-    status:
-      p.validation === "Validated"
-        ? "Approved"
-        : p.validation === "Unvalidated"
-          ? "Validation Failed"
-          : "Pending",
+    status: p.validation === "Validated" ? "passed" : p.validation === "Unvalidated" ? "failed" : "pending",
+    statusSource: `validation: ${p.validation}`,
   }))
-
   return [...datasetRows, ...modelRows, ...pairRows]
 }
 
-const typeBadgeVariant: Record<AasType, string> = {
-  "AI Dataset": "bg-chart-2/10 text-chart-2",
-  "AI Model": "bg-primary/10 text-primary",
-  "AI Asset Pair": "bg-chart-4/15 text-chart-4",
+const TYPE_META: Record<AasType, { label: string; icon: typeof Boxes }> = {
+  dataset: { label: "AI 데이터셋", icon: Database },
+  model: { label: "AI 모델", icon: Boxes },
+  pair: { label: "모델·데이터 짝", icon: Link2 },
 }
 
-function StatusBadge({ status }: { status: AasStatus }) {
-  if (status === "Approved") {
-    return (
-      <Badge className="gap-1 bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
-        <span className="size-1.5 rounded-full bg-current" aria-hidden />
-        승인 완료
-      </Badge>
-    )
-  }
-  if (status === "Pending") {
-    return (
-      <Badge className="gap-1 bg-amber-500/12 text-amber-600 dark:text-amber-400">
-        <span className="size-1.5 rounded-full bg-current" aria-hidden />
-        검토 대기
-      </Badge>
-    )
-  }
-  return (
-    <Badge variant="destructive" className="gap-1">
-      <span className="size-1.5 rounded-full bg-current" aria-hidden />
-      검증 실패
-    </Badge>
-  )
+const STATUS_META: Record<AasStatus, { label: string; tone: Tone }> = {
+  passed: { label: "검증 완료", tone: "success" },
+  pending: { label: "검토 대기", tone: "warning" },
+  failed: { label: "검증 실패", tone: "danger" },
 }
 
-function SummaryCard({
-  icon: Icon,
-  title,
-  count,
-  description,
-  accent,
-}: {
-  icon: typeof Database
-  title: string
-  count: number
-  description: string
-  accent?: "warning" | "danger"
-}) {
-  return (
-    <div className="flex flex-col gap-3 rounded-xl bg-card p-5 ring-1 ring-foreground/10">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">{title}</span>
-        <span
-          className={cn(
-            "flex size-9 items-center justify-center rounded-lg",
-            accent === "warning"
-              ? "bg-amber-500/12 text-amber-600 dark:text-amber-400"
-              : accent === "danger"
-                ? "bg-destructive/10 text-destructive"
-                : "bg-primary/10 text-primary",
-          )}
-        >
-          <Icon className="size-4.5" />
-        </span>
-      </div>
-      <span className="text-3xl font-semibold tabular-nums tracking-tight">{count}</span>
-      <span className="text-xs leading-relaxed text-muted-foreground">{description}</span>
-    </div>
-  )
-}
+type SortKey = "attention" | "registered" | "name"
 
-const typeTabs: { label: string; value: AasType | "All" }[] = [
-  { label: "전체", value: "All" },
-  { label: "AI Dataset", value: "AI Dataset" },
-  { label: "AI Model", value: "AI Model" },
-  { label: "AI Asset Pair", value: "AI Asset Pair" },
-]
+const STATUS_RANK: Record<AasStatus, number> = { failed: 0, pending: 1, passed: 2 }
+
+/** Controls shown in the old admin screen that have no handler or API yet. */
+const NOT_IMPLEMENTED = ["AAS 등록", "편집", "승인", "다시 검증", "버전 기록", "삭제"]
 
 export function AdminDashboard() {
   const rows = useMemo(buildRows, [])
-  const [tab, setTab] = useState<AasType | "All">("All")
+  const [type, setType] = useState<AasType | "all">("all")
+  const [status, setStatus] = useState<AasStatus | "all">("all")
   const [query, setQuery] = useState("")
+  const [sort, setSort] = useState<SortKey>("attention")
 
+  const q = query.trim().toLowerCase()
   const filtered = useMemo(() => {
-    return rows.filter((row) => {
-      const matchesTab = tab === "All" || row.type === tab
-      const matchesQuery =
-        !query.trim() ||
-        row.name.toLowerCase().includes(query.trim().toLowerCase()) ||
-        row.author.toLowerCase().includes(query.trim().toLowerCase())
-      return matchesTab && matchesQuery
-    })
-  }, [rows, tab, query])
+    const out = rows.filter(
+      (r) =>
+        (type === "all" || r.type === type) &&
+        (status === "all" || r.status === status) &&
+        (!q || r.name.toLowerCase().includes(q) || r.author.toLowerCase().includes(q)),
+    )
+    return out.sort((a, b) =>
+      sort === "name"
+        ? a.name.localeCompare(b.name, "ko")
+        : sort === "registered"
+          ? b.registeredAt.localeCompare(a.registeredAt)
+          : STATUS_RANK[a.status] - STATUS_RANK[b.status] || b.registeredAt.localeCompare(a.registeredAt),
+    )
+  }, [rows, type, status, q, sort])
 
-  const pending = rows.filter((r) => r.status === "Pending").length
-  const failed = rows.filter((r) => r.status === "Validation Failed").length
+  const count = (s: AasStatus) => rows.filter((r) => r.status === s).length
+  const attention = rows.filter((r) => r.status !== "passed").sort((a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status])
+  const anyFilter = type !== "all" || status !== "all" || q
+
+  const reset = () => {
+    setType("all")
+    setStatus("all")
+    setQuery("")
+  }
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-10">
-      {/* Header */}
-      <div className="flex flex-col gap-1.5 pb-8">
-        <div className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <ShieldCheck className="size-4.5" />
-          </span>
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Admin</h1>
+    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-4 py-10 md:px-8">
+      <header className="flex flex-col gap-2">
+        <p className="text-[15px] font-medium text-primary">관리</p>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">AI 자산 관리</h1>
+        <p className="text-lg text-muted-foreground">등록된 데이터셋·모델·짝의 검증 상태를 살펴보고, 확인이 필요한 항목부터 처리해요.</p>
+      </header>
+
+      <section aria-label="현황" className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <div className="grid grid-cols-3 gap-3">
+          {(["failed", "pending", "passed"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatus(status === s ? "all" : s)}
+              aria-pressed={status === s}
+              className={cn(
+                "flex flex-col items-start gap-2 rounded-2xl bg-card p-5 text-left ring-1 transition",
+                status === s ? "ring-2 ring-primary" : "ring-border hover:ring-foreground/30",
+              )}
+            >
+              <StatusTag tone={STATUS_META[s].tone}>{STATUS_META[s].label}</StatusTag>
+              <span className="text-4xl font-bold tabular-nums">{count(s)}</span>
+              <span className="text-sm text-muted-foreground">{status === s ? "필터 적용 중" : "눌러서 이것만 보기"}</span>
+            </button>
+          ))}
+          <dl className="col-span-3 flex flex-wrap gap-x-6 gap-y-1 rounded-xl bg-muted/50 px-4 py-3 text-sm">
+            {(Object.keys(TYPE_META) as AasType[]).map((t) => (
+              <div key={t} className="flex gap-1.5">
+                <dt className="text-muted-foreground">{TYPE_META[t].label}</dt>
+                <dd className="font-semibold tabular-nums">{rows.filter((r) => r.type === t).length}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <p className="text-muted-foreground text-pretty">
-          AI Capability Registry Administration
-        </p>
-      </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <SummaryCard
-          icon={Database}
-          title="AI Datasets"
-          count={datasets.length}
-          description="등록된 데이터셋 AAS"
-        />
-        <SummaryCard
-          icon={Boxes}
-          title="AI Models"
-          count={models.length}
-          description="등록된 모델 AAS"
-        />
-        <SummaryCard
-          icon={Link2}
-          title="AI Asset Pairs"
-          count={assetPairs.length}
-          description="데이터셋-모델 연계 자산"
-        />
-        <SummaryCard
-          icon={Clock}
-          title="Pending Review"
-          count={pending}
-          description="검토가 필요한 항목"
-          accent="warning"
-        />
-        <SummaryCard
-          icon={AlertTriangle}
-          title="Validation Failed"
-          count={failed}
-          description="검증에 실패한 항목"
-          accent="danger"
-        />
-      </div>
+        <div className="flex flex-col gap-3 rounded-2xl bg-card p-5 ring-1 ring-border">
+          <h2 className="text-lg font-semibold">
+            확인이 필요해요 <span className="tabular-nums text-muted-foreground">{attention.length}</span>
+          </h2>
+          {attention.length ? (
+            <ul className="flex flex-col divide-y divide-border">
+              {attention.slice(0, 5).map((r) => (
+                <li key={r.id}>
+                  <Link href={r.href} className="group flex items-center gap-3 py-2.5">
+                    <StatusTag tone={STATUS_META[r.status].tone}>{STATUS_META[r.status].label}</StatusTag>
+                    <span className="min-w-0 flex-1 truncate font-medium group-hover:underline">{r.name}</span>
+                    <span className="shrink-0 text-sm text-muted-foreground">{TYPE_META[r.type].label}</span>
+                    <ArrowRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-[15px] text-muted-foreground">모든 자산이 검증을 통과했어요.</p>
+          )}
+          {attention.length > 5 ? (
+            <button type="button" onClick={() => setSort("attention")} className="self-start text-sm font-medium text-primary hover:underline">
+              아래 목록에서 모두 보기
+            </button>
+          ) : null}
+        </div>
+      </section>
 
-      {/* AAS Management */}
-      <section className="mt-10 rounded-xl bg-card ring-1 ring-foreground/10">
-        <div className="flex flex-col gap-4 border-b border-border p-5 md:flex-row md:items-center md:justify-between">
+      <section aria-labelledby="list-title" className="flex flex-col rounded-2xl bg-card ring-1 ring-border">
+        <div className="flex flex-col gap-4 border-b border-border p-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-col gap-0.5">
-            <h2 className="text-lg font-semibold tracking-tight">AAS Management</h2>
-            <p className="text-sm text-muted-foreground">
-              등록된 모든 AAS를 검토하고 관리합니다.
+            <h2 id="list-title" className="text-lg font-semibold">
+              전체 자산
+            </h2>
+            <p aria-live="polite" className="text-sm text-muted-foreground">
+              {filtered.length}개 / 전체 {rows.length}개
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 md:w-64 md:flex-none">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
+          <div className="flex flex-wrap items-center gap-2">
+            <div role="tablist" aria-label="자산 종류" className="flex gap-1 rounded-lg bg-muted p-1">
+              {(["all", "dataset", "model", "pair"] as const).map((t) => (
+                <button
+                  key={t}
+                  role="tab"
+                  type="button"
+                  aria-selected={type === t}
+                  onClick={() => setType(t)}
+                  className={cn("rounded-md px-3 py-1.5 text-sm font-medium", type === t ? "bg-card shadow-sm" : "text-muted-foreground")}
+                >
+                  {t === "all" ? "전체" : TYPE_META[t].label}
+                </button>
+              ))}
+            </div>
+            <label className="relative">
+              <span className="sr-only">이름 또는 담당자 검색</span>
+              <Search aria-hidden className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="이름 또는 작성자 검색"
-                className="pl-9"
-                aria-label="AAS 검색"
+                placeholder="이름 또는 담당자"
+                className="h-10 w-56 rounded-lg border border-input bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
-            </div>
-            <Button variant="outline" size="icon" aria-label="필터">
-              <SlidersHorizontal data-icon="inline-start" />
-            </Button>
-            <Button>
-              <Plus data-icon="inline-start" />
-              Register AAS
-            </Button>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">정렬</span>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+                className="h-10 rounded-lg border border-input bg-background px-2 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="attention">확인 필요 먼저</option>
+                <option value="registered">최근 등록순</option>
+                <option value="name">이름순</option>
+              </select>
+            </label>
+            {anyFilter ? (
+              <button type="button" onClick={reset} className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-sm font-medium text-primary hover:underline">
+                <X aria-hidden className="size-3.5" /> 조건 지우기
+              </button>
+            ) : null}
           </div>
         </div>
 
-        {/* Filter tabs */}
-        <div className="px-5 pt-4">
-          <Tabs value={tab} onValueChange={(v) => v && setTab(v as AasType | "All")}>
-            <TabsList>
-              {typeTabs.map((t) => (
-                <TabsTrigger key={t.value} value={t.value}>
-                  {t.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto p-5">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                <th className="px-3 py-2.5 font-medium">Name</th>
-                <th className="px-3 py-2.5 font-medium">Type</th>
-                <th className="px-3 py-2.5 font-medium">Version</th>
-                <th className="px-3 py-2.5 font-medium">Author</th>
-                <th className="px-3 py-2.5 font-medium">Registered</th>
-                <th className="px-3 py-2.5 font-medium">Status</th>
-                <th className="px-3 py-2.5 text-right font-medium">Actions</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-muted/40 text-muted-foreground">
+              <tr>
+                <th scope="col" className="px-5 py-3 font-medium">이름</th>
+                <th scope="col" className="px-3 py-3 font-medium">종류</th>
+                <th scope="col" className="px-3 py-3 font-medium">버전</th>
+                <th scope="col" className="px-3 py-3 font-medium">담당자</th>
+                <th scope="col" className="px-3 py-3 font-medium">등록일</th>
+                <th scope="col" className="px-3 py-3 font-medium">상태</th>
+                <th scope="col" className="px-5 py-3 text-right font-medium">작업</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-border/60 transition-colors last:border-0 hover:bg-muted/40"
-                >
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted ring-1 ring-foreground/10">
-                        <Image
-                          src={getTaskThumbnail(row.task) || "/placeholder.svg"}
-                          alt=""
-                          fill
-                          sizes="40px"
-                          className="object-cover"
-                        />
+              {filtered.map((r) => {
+                const Icon = TYPE_META[r.type].icon
+                return (
+                  <tr key={r.id} className={cn("border-t border-border", r.status === "failed" && "bg-destructive/5")}>
+                    <td className="px-5 py-3">
+                      <span className="flex flex-col">
+                        <span className="text-[15px] font-semibold">{r.name}</span>
+                        <span className="text-xs text-muted-foreground">{useCaseOf(r.task).problem}</span>
                       </span>
-                      <span className="font-medium text-foreground">{row.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-3">
-                    <Badge className={cn("font-normal", typeBadgeVariant[row.type])}>
-                      {row.type}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-3 font-mono text-muted-foreground">{row.version}</td>
-                  <td className="px-3 py-3 text-muted-foreground">{row.author}</td>
-                  <td className="px-3 py-3 tabular-nums text-muted-foreground">
-                    {row.registeredAt}
-                  </td>
-                  <td className="px-3 py-3">
-                    <StatusBadge status={row.status} />
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" aria-label="보기">
-                        <Eye data-icon="inline-start" />
-                      </Button>
-                      <Button variant="ghost" size="icon" aria-label="편집">
-                        <Pencil data-icon="inline-start" />
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button variant="ghost" size="icon" aria-label="더 보기" />
-                          }
-                        >
-                          <MoreHorizontal data-icon="inline-start" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem>승인</DropdownMenuItem>
-                          <DropdownMenuItem>다시 검증</DropdownMenuItem>
-                          <DropdownMenuItem>버전 기록</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem variant="destructive">삭제</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon aria-hidden className="size-4 text-muted-foreground" /> {TYPE_META[r.type].label}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 font-mono text-muted-foreground">{r.version}</td>
+                    <td className="px-3 py-3">{r.author}</td>
+                    <td className="px-3 py-3 tabular-nums text-muted-foreground">{r.registeredAt}</td>
+                    <td className="px-3 py-3">
+                      <span className="flex flex-col items-start gap-1">
+                        <StatusTag tone={STATUS_META[r.status].tone}>{STATUS_META[r.status].label}</StatusTag>
+                        <span className="text-xs text-muted-foreground">{r.statusSource}</span>
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <Link
+                        href={r.href}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+                      >
+                        <Eye aria-hidden className="size-4" /> 상세 보기
+                      </Link>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
-
-          {filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-1 py-16 text-center">
-              <p className="text-sm font-medium">검색 결과가 없습니다</p>
-              <p className="text-xs text-muted-foreground">
-                다른 검색어나 필터를 시도해 보세요.
-              </p>
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-16 text-center">
+              <p className="font-semibold">조건에 맞는 자산이 없어요</p>
+              <button type="button" onClick={reset} className="text-sm font-medium text-primary hover:underline">
+                조건 지우기
+              </button>
             </div>
-          )}
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-border p-5 md:flex-row md:items-center md:gap-4">
+          <span className="text-sm font-semibold">아직 연결되지 않은 작업</span>
+          <ul className="flex flex-wrap gap-2" aria-label="미구현 작업">
+            {NOT_IMPLEMENTED.map((a) => (
+              <li key={a}>
+                <button
+                  type="button"
+                  disabled
+                  title="서버 기능이 아직 없어 사용할 수 없어요"
+                  className="cursor-not-allowed rounded-lg border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground"
+                >
+                  {a}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <span className="text-sm text-muted-foreground md:ml-auto">이전 화면에 버튼만 있던 기능이에요. API가 연결되면 행별 작업으로 옮겨요.</span>
         </div>
       </section>
     </div>
