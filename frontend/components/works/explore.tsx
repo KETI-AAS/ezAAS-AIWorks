@@ -1,11 +1,10 @@
 "use client"
 
-import { ArrowRight, Search, X } from "lucide-react"
+import { ArrowRight, ChevronDown, Search, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useMemo, useState } from "react"
 
-import { InputOutput, StatusTag } from "@/components/works/primitives"
 import { assetPairs, datasets, getDataset, getModel, getModelsByDataset, models, type TaskType } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
 import { TASK_KO, useCaseOf } from "@/lib/works/plain"
@@ -35,6 +34,8 @@ const FACETS: { key: FacetKey; label: string; modes: Mode[] }[] = [
   { key: "industry", label: "산업", modes: ["models", "datasets", "pairs"] },
   { key: "framework", label: "프레임워크", modes: ["models", "pairs"] },
 ]
+
+const TECHNICAL = new Set<FacetKey>(["framework"])
 
 const optionLabel = (key: FacetKey, value: string) => (key === "task" ? useCaseOf(value as TaskType).problem : value)
 
@@ -158,7 +159,7 @@ export function Explore({ mode, initialTask }: { mode: Mode; initialTask?: TaskT
           {facets.map((f) => {
             const opts = options(f.key)
             if (opts.length < 2) return null
-            return (
+            const group = (
               <fieldset key={f.key} className="flex flex-col gap-1">
                 <legend className="mb-2 text-sm font-semibold text-muted-foreground">{f.label}</legend>
                 {opts.map(([value, count]) => {
@@ -179,6 +180,16 @@ export function Explore({ mode, initialTask }: { mode: Mode; initialTask?: TaskT
                   )
                 })}
               </fieldset>
+            )
+            if (!TECHNICAL.has(f.key)) return group
+            return (
+              <details key={f.key} open={Boolean(selection[f.key]?.length)} className="group border-t border-border pt-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-muted-foreground [&::-webkit-details-marker]:hidden">
+                  기술 조건
+                  <ChevronDown aria-hidden className="size-4 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="pt-3">{group}</div>
+              </details>
             )
           })}
         </aside>
@@ -265,33 +276,55 @@ export function Explore({ mode, initialTask }: { mode: Mode; initialTask?: TaskT
 
 function ModelRow({ id }: { id: string }) {
   const m = getModel(id)!
+  const uc = useCaseOf(m.task)
   return (
-    <article className="grid gap-5 rounded-2xl border border-border bg-card p-4 md:grid-cols-[160px_minmax(0,1fr)_auto] md:items-center">
-      <Link href={`/models/${m.id}`} className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted" tabIndex={-1}>
-        <Image src={m.image || "/placeholder.svg"} alt="" fill sizes="160px" className="object-cover" />
-      </Link>
-      <div className="flex min-w-0 flex-col gap-2">
-        <p className="text-sm text-muted-foreground">
-          <span className="font-medium text-primary">{useCaseOf(m.task).problem}</span> · {m.dataType} · {m.industry} · {m.framework}
-        </p>
-        <h2 className="text-xl font-semibold tracking-tight">
-          <Link href={`/models/${m.id}`} className="hover:underline">
-            {m.name}
-          </Link>
-        </h2>
-        <InputOutput input={m.input} output={m.output} />
-      </div>
-      <div className="flex gap-2 md:flex-col md:items-stretch">
-        <StatusTag tone="success" className="self-start md:self-end">
-          바로 해볼 수 있어요
-        </StatusTag>
+    <article className="rounded-xl border border-border bg-card">
+      <div className="grid grid-cols-[64px_minmax(0,1fr)] items-center gap-4 p-3 md:grid-cols-[72px_minmax(0,1fr)_auto]">
+        <Link href={`/models/${m.id}`} className="relative size-16 overflow-hidden rounded-lg bg-muted md:size-[72px]" tabIndex={-1}>
+          <Image src={m.image || "/placeholder.svg"} alt="" fill sizes="72px" className="object-cover" />
+        </Link>
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h2 className="text-lg font-semibold tracking-tight">
+              <Link href={`/models/${m.id}`} className="hover:underline">
+                {m.name}
+              </Link>
+            </h2>
+            <span className="text-sm font-medium text-primary">{uc.problem}</span>
+          </div>
+          <p className="truncate text-[15px] text-muted-foreground">{m.purpose}</p>
+          <p className="flex flex-wrap items-center gap-x-1.5 text-sm">
+            <span className="text-muted-foreground">입력</span>
+            <span className="font-medium">{uc.inputKind}</span>
+            <ArrowRight aria-label="결과" className="size-3.5 text-muted-foreground" />
+            <span className="font-medium">{uc.outputKind}</span>
+          </p>
+        </div>
         <Link
           href={`/models/${m.id}/deploy`}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-[15px] font-semibold text-primary-foreground hover:bg-primary/90"
+          className="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-[15px] font-semibold text-primary-foreground hover:bg-primary/90 md:col-span-1"
         >
-          추론 해보기 <ArrowRight aria-hidden className="size-4" />
+          추론해보기 <ArrowRight aria-hidden className="size-4" />
         </Link>
       </div>
+      <details className="group border-t border-border">
+        <summary className="flex cursor-pointer list-none items-center gap-1 px-4 py-2 text-sm text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+          <ChevronDown aria-hidden className="size-4 transition-transform group-open:rotate-180" /> 상세 사양
+        </summary>
+        <dl className="grid gap-x-6 gap-y-2 px-4 pb-4 text-sm sm:grid-cols-2">
+          {[
+            ["입력 형식", m.input],
+            ["출력", m.output],
+            ["데이터 · 산업", `${m.dataType} · ${m.industry}`],
+            ["프레임워크", m.framework],
+          ].map(([k, v]) => (
+            <div key={k} className="flex gap-2">
+              <dt className="w-24 shrink-0 text-muted-foreground">{k}</dt>
+              <dd className="min-w-0">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
     </article>
   )
 }

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 
 import { ImageInference } from "@/components/works/inference-image"
-import { SeriesInference } from "@/components/works/inference-series"
+import { SeriesInference } from "@/components/works/inference-series-direct"
 import { KeyValues, NextAction, TechDetails } from "@/components/works/primitives"
 import { SetCurrentModel } from "@/components/works/set-current-model"
 import { models, type Dataset, type Model } from "@/lib/registry-data"

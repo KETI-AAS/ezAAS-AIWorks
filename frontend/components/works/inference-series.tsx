@@ -3,7 +3,7 @@
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, RotateCcw, Upload } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 
-import { RunPanel, SpecTable, useSimulatedRun } from "@/components/works/inference-shared"
+import { RunPanel, useSimulatedRun } from "@/components/works/inference-shared"
 import { DemoNote, StatusTag } from "@/components/works/primitives"
 import type { Model } from "@/lib/registry-data"
 import { cn } from "@/lib/utils"
@@ -23,7 +23,7 @@ const PREVIEW_ROWS = 8
 
 type Source = "csv" | "paste" | "sample" | "sample-broken"
 
-export function SeriesInference({ model, spec }: { model: Model; spec: SeriesInputSpec }) {
+export function SeriesCsvRunner({ model, spec }: { model: Model; spec: SeriesInputSpec }) {
   const [rows, setRows] = useState<SeriesRow[] | null>(null)
   const [source, setSource] = useState<{ kind: Source; name: string } | null>(null)
   const [parseIssues, setParseIssues] = useState<SeriesIssue[]>([])
@@ -94,37 +94,15 @@ export function SeriesInference({ model, spec }: { model: Model; spec: SeriesInp
 
   return (
     <div className="flex flex-col gap-6">
-      <section aria-labelledby="spec-title" className="flex flex-col gap-3 rounded-2xl bg-card p-6 ring-1 ring-border">
-        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h2 id="spec-title" className="text-lg font-semibold">이 AI가 받는 값</h2>
-            <p className="text-[15px] text-muted-foreground">
-              한 줄이 아니라 <strong className="font-semibold text-foreground">연속된 {spec.windowLength}줄</strong>(시간 창)을 한 번에 넣어야 해요. 줄마다
-              아래 {spec.channels.length}개 값이 필요해요.
-            </p>
-          </div>
-          <button type="button" onClick={downloadTemplate} className="inline-flex items-center gap-2 self-start rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-muted">
-            <Download aria-hidden className="size-4" /> CSV 양식 받기
-          </button>
-        </div>
-        <SpecTable
-          rows={[
-            { name: spec.timestamp.name, label: "측정 시각", required: false, rule: "HH:MM:SS 또는 ISO 8601", demo: true },
-            ...spec.channels.map((c) => ({
-              name: c.name,
-              label: c.label,
-              unit: c.unit,
-              required: c.required,
-              rule: `숫자 · ${c.range.min}–${c.range.max}`,
-              demo: true,
-            })),
-          ]}
-        />
-        <p className="text-sm text-muted-foreground">
-          열 이름·단위·필수 여부는 연결된 데이터셋 스키마에서, 줄 수({spec.windowLength})는 입력 텐서 {spec.tensorShape}에서 가져왔어요. 허용 범위와 timestamp
-          열은 레지스트리에 없어 데모 값으로 표시했어요.
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[15px] text-muted-foreground">
+          열: <span className="font-mono text-sm text-foreground">{spec.channels.map((c) => c.name).join(", ")}</span> · 연속 {spec.windowLength}줄 (
+          {spec.tensorShape})
         </p>
-      </section>
+        <button type="button" onClick={downloadTemplate} className="inline-flex items-center gap-2 self-start rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-muted">
+          <Download aria-hidden className="size-4" /> CSV 양식 받기
+        </button>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <section aria-label="입력 데이터" className="flex flex-col gap-4">
