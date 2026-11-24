@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowLeft, Boxes, Check, CheckCircle2, Database, Layers,
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { DemoNote, KeyValues, NextAction, StatusTag, TechDetails, type Tone } from "@/components/works/primitives"
-import { AssetGroupForm, fieldId } from "@/components/works/register-form"
+import { AssetGroupForm, FILE_KEYS, fieldId, GROUP_ICON } from "@/components/works/register-form"
 import { cn } from "@/lib/utils"
 import {
   BACKEND_GAP,
@@ -25,7 +25,7 @@ import {
   type HubInstance,
   type ListStatus,
 } from "@/lib/works/hub-instances"
-import { assetOption } from "@/lib/works/register-fields"
+import { assetOption, requiredFields } from "@/lib/works/register-fields"
 
 const STEP_MS = 900
 
@@ -95,39 +95,45 @@ export function Register() {
   }, [query])
 
   const todoCount = HUB_INSTANCES.filter((i) => GROUPS[0].statuses.includes(listStatus(i, states[i.id]))).length
+  const phase = states[instance.id].phase
+  const current = phase === "edit" ? 1 : phase === "review" ? 2 : 3
 
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-4 py-10 md:px-8">
-      <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex max-w-2xl flex-col gap-3">
-          <p className="text-[15px] font-medium text-primary">자산 등록</p>
-          <h1 className="text-3xl font-bold tracking-tight text-balance md:text-4xl">
-            Model Hub에 올린 AI를
-            <br className="hidden md:block" /> 여기서 쓸 수 있게 준비해요
-          </h1>
-          <p className="text-lg leading-relaxed text-muted-foreground text-pretty">
-            {todoCount > 0 ? `할 일이 있는 항목이 ${todoCount}개 있어요. ` : ""}Model Hub에서 가져온 정보는 그대로 두고, 등록에 필요한 정보와 실제 파일을 채우면 돼요.
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-8 md:px-8">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-2xl font-bold tracking-tight text-balance md:text-3xl">자산 등록</h1>
+          <p className="text-[15px] leading-relaxed text-muted-foreground text-pretty">
+            {todoCount > 0 ? `할 일이 있는 항목 ${todoCount}개 · ` : ""}Model Hub 정보는 그대로 두고, 설명과 파일만 채우면 돼요.
           </p>
         </div>
-        <ol aria-label="등록 순서" className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[680px]">
-          {[
-            { t: `instance 고르기 · ${HUB_INSTANCES.length}개`, done: true },
-            { t: "정보 입력 · 파일 올리기", done: false },
-            { t: "검토 후 등록", done: false },
-            { t: "자동 검증 후 사용", done: false },
-          ].map((s, i) => (
-            <li key={s.t} className="flex flex-col gap-1 rounded-xl bg-card p-3 ring-1 ring-border">
-              <span className={cn("flex items-center gap-1 text-sm font-semibold tabular-nums", s.done ? "text-success" : "text-primary")}>
-                {s.done ? <Check aria-hidden className="size-3.5" /> : null}
-                {i + 1}단계
-              </span>
-              <span className="text-[15px] font-medium leading-snug">{s.t}</span>
-            </li>
-          ))}
+        <ol aria-label="등록 순서" className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm">
+          {["instance 고르기", "설명·파일 채우기", "검토 후 등록", "파일 자동 검증"].map((t, i) => {
+            const done = i < current || phase === "passed"
+            const active = i === current && phase !== "passed"
+            return (
+              <li key={t} className="flex items-center gap-1" aria-current={active ? "step" : undefined}>
+                {i > 0 ? (
+                  <span aria-hidden className="px-1 text-muted-foreground">
+                    →
+                  </span>
+                ) : null}
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium",
+                    active ? "bg-primary text-primary-foreground" : done ? "bg-success/10 text-success" : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {done ? <Check aria-hidden className="size-3.5" /> : <span className="tabular-nums">{i + 1}</span>}
+                  {t}
+                </span>
+              </li>
+            )
+          })}
         </ol>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         <nav aria-label="내 Model Hub 항목" className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <label className="relative">
             <span className="sr-only">이름으로 찾기</span>
@@ -212,51 +218,50 @@ function Workspace({ instance, state, onPatch }: { instance: HubInstance; state:
   const touch = (g: Group, k: string) => setTouched((prev) => (prev.has(`${g}.${k}`) ? prev : new Set(prev).add(`${g}.${k}`)))
   const r = readiness(instance, state)
 
+  const jump = (g: Group, key: string) => {
+    const el = document.getElementById(fieldId(instance.id, g, key))
+    if (!el) return
+    el.scrollIntoView({ block: "center", behavior: "smooth" })
+    el.focus({ preventScroll: true })
+  }
+
   const goReview = () => {
     if (!r.ready) {
       setAttempted(true)
       const first = r.groups.find((g) => g.missing.length)
-      if (first) document.getElementById(fieldId(instance.id, first.group, first.missing[0].key))?.focus()
+      if (first) jump(first.group, first.missing[0].key)
       return
     }
     onPatch({ phase: "review" })
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
+  const statusProps = { instance, state, attempted, onReview: goReview, onJump: jump }
+
   return (
-    <section aria-labelledby="ws-title" className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 rounded-2xl bg-card p-6 ring-1 ring-border md:p-8">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-muted px-2.5 py-1 text-sm font-medium">{KIND_LABEL[instance.kind]}</span>
-          <StageTrack phase={state.phase} />
-        </div>
-        <h2 id="ws-title" ref={headingRef} tabIndex={-1} className="text-3xl font-bold tracking-tight text-balance outline-none">
-          {instance.name}
-        </h2>
-        <p className="max-w-2xl text-lg leading-relaxed text-pretty">{instance.purpose}</p>
-        {instance.prototype ? (
-          <DemoNote>
-            모델과 데이터셋을 함께 담은 instance는 한 번에 등록하는 프로토타입이에요. 두 그룹을 모두 채워야 등록할 수 있어요. 서버 계약은 아래 “백엔드에 필요한 변경”에 정리했어요.
-          </DemoNote>
-        ) : null}
-      </div>
+    <section aria-labelledby="ws-title" className="flex min-w-0 flex-col gap-6">
+      <InstanceSummary instance={instance} phase={state.phase} headingRef={headingRef} />
 
       {state.phase === "edit" ? (
-        <>
-          {groupsOf(instance).map((g) => (
-            <AssetGroupForm
-              key={g}
-              inst={instance}
-              group={g}
-              state={state}
-              showError={showError}
-              onTouch={touch}
-              onPatch={onPatch}
-              onSample={() => onPatch((s) => sampleFilled(instance, g, s))}
-            />
-          ))}
-          <ReadinessBar instance={instance} state={state} attempted={attempted} onReview={goReview} />
-        </>
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="flex min-w-0 flex-col gap-6">
+            <CompletionStrip {...statusProps} className="xl:hidden" />
+            {groupsOf(instance).map((g) => (
+              <AssetGroupForm
+                key={g}
+                inst={instance}
+                group={g}
+                state={state}
+                showError={showError}
+                onTouch={touch}
+                onPatch={onPatch}
+                onSample={() => onPatch((s) => sampleFilled(instance, g, s))}
+              />
+            ))}
+            <StatusPanel {...statusProps} className="flex xl:hidden" />
+          </div>
+          <StatusPanel {...statusProps} className="hidden xl:sticky xl:top-24 xl:flex" />
+        </div>
       ) : state.phase === "review" ? (
         <ReviewPanel instance={instance} state={state} onEdit={() => onPatch({ phase: "edit" })} onOutcome={(outcome) => onPatch({ outcome })} onRegister={() => onPatch({ phase: "registering" })} />
       ) : (
@@ -311,63 +316,190 @@ function StageTrack({ phase }: { phase: AssetState["phase"] }) {
   )
 }
 
-function ReadinessBar({ instance, state, attempted, onReview }: { instance: HubInstance; state: AssetState; attempted: boolean; onReview: () => void }) {
-  const r = readiness(instance, state)
-  const pct = Math.round((r.done / r.total) * 100)
+function InstanceSummary({ instance, phase, headingRef }: { instance: HubInstance; phase: AssetState["phase"]; headingRef: React.RefObject<HTMLHeadingElement | null> }) {
+  const groups = groupsOf(instance)
+  const items = [
+    { label: "작성자", value: instance.imported.author },
+    { label: "버전", value: instance.imported.version },
+    ...(groups.includes("model") ? [{ label: "Framework", value: instance.imported.framework ?? "—" }] : []),
+    ...(groups.includes("dataset") ? [{ label: "데이터 카테고리", value: datasetCategory(instance), note: instance.imported.datasetFileType }] : []),
+    { label: "Model Hub 업로드", value: instance.uploadedAt },
+  ]
   return (
-    <div className="sticky bottom-4 z-10 flex flex-col gap-4 rounded-2xl bg-card p-5 shadow-lg ring-1 ring-border md:p-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p className="text-[15px] font-semibold tabular-nums" aria-live="polite">
-            {r.ready ? "모든 필수 항목과 파일이 준비됐어요" : `필수 ${r.total}개 중 ${r.done}개 완료`}
-          </p>
-          <div className="flex gap-3">
-            {r.groups.map((g) => (
-              <span key={g.group} className={cn("text-sm tabular-nums", g.done === g.total ? "text-success" : "text-muted-foreground")}>
-                {GROUP_LABEL[g.group]} {g.done}/{g.total}
-              </span>
-            ))}
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className={cn("h-full rounded-full transition-all", r.ready ? "bg-success" : "bg-primary")} style={{ width: `${Math.max(pct, 4)}%` }} />
-          </div>
+    <div className="flex flex-col overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+      <div className="flex flex-col gap-2 px-5 py-5 md:px-7">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-md bg-muted px-2.5 py-1 text-sm font-semibold">{KIND_LABEL[instance.kind]}</span>
+          <StageTrack phase={phase} />
+          {instance.prototype ? <span className="rounded-full border border-dashed border-warning px-2 py-0.5 text-xs text-warning-foreground">프로토타입</span> : null}
         </div>
+        <h2 id="ws-title" ref={headingRef} tabIndex={-1} className="text-2xl font-bold tracking-tight text-balance outline-none md:text-[28px]">
+          {instance.name}
+        </h2>
+        <p className="max-w-3xl text-[15px] leading-relaxed text-muted-foreground text-pretty">{instance.purpose}</p>
+      </div>
+      <div className="flex flex-col gap-3 border-t border-border bg-muted/40 px-5 py-4 md:px-7">
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-muted-foreground">
+          <Lock aria-hidden className="size-3.5" /> Model Hub에서 가져온 정보
+          <span className="font-normal">· 여기서는 바꿀 수 없어요</span>
+          <span className="font-mono text-xs font-normal">{instance.hubId}</span>
+        </p>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 2xl:grid-cols-5">
+          {items.map((it) => (
+            <div key={it.label} className="flex min-w-0 flex-col gap-0.5">
+              <dt className="text-[13px] text-muted-foreground">{it.label}</dt>
+              <dd className="truncate text-[15px] font-semibold">
+                {it.value}
+                {"note" in it && it.note ? <span className="ml-1.5 font-mono text-xs font-normal text-muted-foreground">{it.note}</span> : null}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      {instance.prototype ? (
+        <div className="border-t border-border px-5 py-3 md:px-7">
+          <DemoNote>모델과 데이터셋을 한 번에 등록하는 프로토타입이에요. 두 그룹을 모두 채워야 등록할 수 있어요.</DemoNote>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+type StatusProps = { instance: HubInstance; state: AssetState; attempted: boolean; onReview: () => void; onJump: (g: Group, key: string) => void; className?: string }
+
+function useMissing(instance: HubInstance, state: AssetState) {
+  const r = readiness(instance, state)
+  const multi = r.groups.length > 1
+  const missing = r.groups.flatMap((g) => g.missing.map((m) => ({ group: g.group, key: m.key, name: `${multi ? `${GROUP_LABEL[g.group]} · ` : ""}${m.label}` })))
+  return { r, missing }
+}
+
+function Progress({ done, total }: { done: number; total: number }) {
+  const ready = done === total
+  return (
+    <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-label="필수 항목 진행">
+      <div className={cn("h-full rounded-full transition-all", ready ? "bg-success" : "bg-primary")} style={{ width: `${Math.max((done / total) * 100, 4)}%` }} />
+    </div>
+  )
+}
+
+function CompletionStrip({ instance, state, attempted, onJump, className }: StatusProps) {
+  const { r, missing } = useMissing(instance, state)
+  return (
+    <div className={cn("flex flex-col gap-3 rounded-2xl bg-card p-5 ring-1 ring-border", className)}>
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-lg font-bold tabular-nums" aria-live="polite">
+          필수 항목 {r.done}/{r.total}개 완료
+        </p>
+        <span className={cn("text-sm font-medium", r.ready ? "text-success" : "text-muted-foreground")}>{r.ready ? "검토할 수 있어요" : `${missing.length}개 남음`}</span>
+      </div>
+      <Progress done={r.done} total={r.total} />
+      {missing.length ? (
+        <ul aria-label="남은 항목" className="flex flex-wrap gap-2">
+          {missing.map((m) => (
+            <li key={`${m.group}-${m.key}`}>
+              <button
+                type="button"
+                onClick={() => onJump(m.group, m.key)}
+                className={cn("rounded-full border px-3 py-1 text-sm font-medium hover:bg-muted", attempted ? "border-destructive/50 text-destructive" : "border-border")}
+              >
+                {m.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  )
+}
+
+function StatusPanel({ instance, state, attempted, onReview, onJump, className }: StatusProps) {
+  const { r, missing } = useMissing(instance, state)
+  const shortList = missing.slice(0, 3).map((m) => m.name).join(", ") + (missing.length > 3 ? ` 외 ${missing.length - 3}개` : "")
+  return (
+    <aside aria-label="작성 현황과 등록" className={cn("flex-col gap-5 rounded-2xl bg-card p-5 ring-1 ring-border md:p-6", className)}>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-semibold text-muted-foreground">작성 현황</p>
+        <p className="text-xl font-bold tabular-nums" aria-live="polite">
+          필수 항목 {r.done}/{r.total}개 완료
+        </p>
+        <Progress done={r.done} total={r.total} />
+      </div>
+
+      <div className={cn("grid gap-5", r.groups.length > 1 && "sm:grid-cols-2 xl:grid-cols-1")}>
+        {r.groups.map((g) => {
+          const Icon = GROUP_ICON[g.group]
+          return (
+            <div key={g.group} className="flex flex-col gap-1.5">
+              <p className="flex items-center justify-between gap-2 text-sm font-semibold">
+                <span className="flex items-center gap-1.5">
+                  <Icon aria-hidden className="size-4 text-muted-foreground" />
+                  {GROUP_LABEL[g.group]} 정보
+                </span>
+                <span className={cn("tabular-nums", g.done === g.total ? "text-success" : "text-muted-foreground")}>
+                  {g.done}/{g.total}
+                </span>
+              </p>
+              <ul className="flex flex-col">
+                {requiredFields(g.group, state.model).map((f) => {
+                  const ok = !g.errors[f.key]
+                  return (
+                    <li key={f.key}>
+                      <button type="button" onClick={() => onJump(g.group, f.key)} className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[15px] hover:bg-muted">
+                        {ok ? (
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
+                            <Check aria-hidden className="size-3" />
+                          </span>
+                        ) : (
+                          <span aria-hidden className={cn("size-5 shrink-0 rounded-full border-2", attempted ? "border-destructive" : "border-border")} />
+                        )}
+                        <span className={cn("min-w-0 truncate", ok ? "text-muted-foreground" : "font-medium", !ok && attempted && "text-destructive")}>
+                          {FILE_KEYS.has(f.key) && f.key === "file" ? `${f.label} 업로드` : f.label}
+                        </span>
+                        <span className="sr-only">{ok ? " 완료" : " 남음"}</span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-border pt-5">
         <button
           type="button"
           onClick={onReview}
           aria-disabled={!r.ready}
-          className={cn(
-            "h-12 shrink-0 rounded-lg px-6 text-base font-semibold",
-            r.ready ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-muted text-muted-foreground hover:bg-muted/80",
-          )}
+          aria-describedby={`${instance.id}-review-reason`}
+          className={cn("h-12 w-full rounded-lg px-6 text-base font-semibold", r.ready ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-muted text-muted-foreground hover:bg-muted/80")}
         >
           작성 내용 검토하기
         </button>
+        <p id={`${instance.id}-review-reason`} role="status" className={cn("flex items-start gap-1.5 text-sm leading-relaxed", !r.ready && attempted ? "font-medium text-destructive" : "text-muted-foreground")}>
+          {r.ready ? (
+            "다음 화면에서 한 번 더 확인하고 등록해요."
+          ) : (
+            <>
+              {attempted ? <AlertTriangle aria-hidden className="mt-0.5 size-3.5 shrink-0" /> : null}
+              <span>
+                {missing.length}개를 더 채우면 검토할 수 있어요: {shortList}
+              </span>
+            </>
+          )}
+        </p>
       </div>
-      {attempted && !r.ready ? (
-        <div role="alert" className="flex flex-col gap-2 rounded-xl bg-destructive/5 px-4 py-3">
-          <p className="flex items-center gap-1.5 text-[15px] font-semibold text-destructive">
-            <AlertTriangle aria-hidden className="size-4" /> 아직 채우지 않은 항목이 있어요
-          </p>
-          <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
-            {r.groups.flatMap((g) =>
-              g.missing.map((m) => (
-                <li key={`${g.group}-${m.key}`}>
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById(fieldId(instance.id, g.group, m.key))?.focus()}
-                    className="text-sm text-destructive underline underline-offset-2"
-                  >
-                    {groupsOf(instance).length > 1 ? `${GROUP_LABEL[g.group]} · ` : ""}
-                    {m.label}
-                  </button>
-                </li>
-              )),
-            )}
-          </ul>
-        </div>
-      ) : null}
-    </div>
+
+      <div className="flex flex-col gap-1.5 rounded-xl bg-muted/50 px-4 py-3">
+        <p className="text-sm font-semibold">등록한 다음에는</p>
+        <ol className="flex flex-col gap-1 text-sm leading-relaxed text-muted-foreground">
+          <li>올린 파일을 자동으로 검증해요.</li>
+          <li>통과하면 바로 추론에 쓸 수 있어요.</li>
+          <li>실패하면 그 파일만 바꿔 다시 올려요.</li>
+        </ol>
+      </div>
+    </aside>
   )
 }
 
