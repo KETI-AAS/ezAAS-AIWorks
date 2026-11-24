@@ -1,12 +1,19 @@
 "use client"
 
-import { LogOut, User } from "lucide-react"
+import { LogIn, LogOut } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
 import { useAuth } from "@/components/auth/auth-provider"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,30 +25,22 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 
-export function SidebarAuth() {
+export function AccountMenu() {
   const { user, login, logout } = useAuth()
+  const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
-  function handleLogin() {
+  function handleLogin(event: React.FormEvent) {
+    event.preventDefault()
     const ok = login(email, password)
     if (ok) {
       toast.success(`${email.trim()}님 환영합니다`)
       setEmail("")
       setPassword("")
+      setOpen(false)
     } else {
       toast.error("이메일과 비밀번호를 입력해 주세요")
-    }
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (
-      e.key === "Enter" &&
-      !e.nativeEvent.isComposing &&
-      e.keyCode !== 229
-    ) {
-      e.preventDefault()
-      handleLogin()
     }
   }
 
@@ -52,7 +51,8 @@ export function SidebarAuth() {
           render={
             <button
               type="button"
-              className="flex w-full items-center gap-2.5 rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-2.5 text-left transition-colors hover:bg-sidebar-accent/70"
+              className="flex items-center gap-2 rounded-md px-1.5 py-1 text-left transition-colors hover:bg-muted"
+              aria-label="계정 메뉴"
             />
           }
         >
@@ -61,12 +61,9 @@ export function SidebarAuth() {
               {user.email.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-sm font-medium">{user.email}</span>
-            <span className="text-xs text-muted-foreground">로그인됨</span>
-          </span>
+          <span className="hidden max-w-40 truncate text-sm font-medium lg:inline">{user.email}</span>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="top" align="start" className="w-(--anchor-width)">
+        <DropdownMenuContent align="end" className="min-w-56">
           <DropdownMenuGroup>
             <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
           </DropdownMenuGroup>
@@ -87,32 +84,44 @@ export function SidebarAuth() {
   }
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl border border-sidebar-border bg-sidebar-accent/40 p-3">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <User className="size-4 text-primary" />
-        로그인
-      </div>
-      <Input
-        aria-label="이메일"
-        type="email"
-        placeholder="이메일"
-        autoComplete="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        onKeyDown={handleKeyDown}
-      />
-      <Input
-        aria-label="비밀번호"
-        type="password"
-        placeholder="비밀번호"
-        autoComplete="current-password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        onKeyDown={handleKeyDown}
-      />
-      <Button size="sm" className="w-full" onClick={handleLogin}>
+    <>
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+        <LogIn data-icon="inline-start" />
         로그인
       </Button>
-    </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>모델 허브 계정으로 로그인</DialogTitle>
+            <DialogDescription>
+              모델 허브(ezAAS) 계정으로 로그인하면 내 instance를 불러와 등록할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleLogin} className="flex flex-col gap-3">
+            <label className="flex flex-col gap-1.5 text-sm font-medium">
+              이메일
+              <Input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-sm font-medium">
+              비밀번호
+              <Input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+            <Button type="submit" className="mt-1">
+              로그인
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

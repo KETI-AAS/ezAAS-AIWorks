@@ -20,8 +20,11 @@ import {
   UploadCloud,
   X,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { FilePlus2, Play, ShieldCheck } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+
+import { NextStepList } from "@/components/v2/next-step"
+import { StatusPill } from "@/components/v2/status-pill"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -641,12 +644,11 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 /* ------------------------------------------------------------------ */
 
 export function RegisterWorkflow() {
-  const router = useRouter()
+  const [completedModelId, setCompletedModelId] = useState<string | null>(null)
   const [activeStep, setActiveStep] = useState(1)
   const [step2Asset, setStep2Asset] = useState<"dataset" | "model">("dataset")
   const [registrationComplete, setRegistrationComplete] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [redirectCountdown, setRedirectCountdown] = useState(5)
   const [mode, setMode] = useState<"file" | "import">("import")
   const [upload, setUpload] = useState<AasUpload>({ status: "empty" })
   const [analysis, setAnalysis] = useState<AasAnalysis | null>(null)
@@ -678,22 +680,6 @@ export function RegisterWorkflow() {
     artifactReference: "",
     dependencyReference: "",
   })
-
-  useEffect(() => {
-    if (!registrationComplete) return
-
-    const countdownTimer = window.setInterval(() => {
-      setRedirectCountdown((current) => Math.max(0, current - 1))
-    }, 1000)
-    const redirectTimer = window.setTimeout(() => {
-      router.replace("/")
-    }, 5000)
-
-    return () => {
-      window.clearInterval(countdownTimer)
-      window.clearTimeout(redirectTimer)
-    }
-  }, [registrationComplete, router])
 
   useEffect(() => {
     try {
@@ -750,7 +736,7 @@ export function RegisterWorkflow() {
       })
     }
 
-    setRedirectCountdown(5)
+    setCompletedModelId(targetModel?.id ?? null)
     setRegistrationComplete(true)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
@@ -879,33 +865,63 @@ export function RegisterWorkflow() {
 
   if (registrationComplete) {
     return (
-      <Card
-        className="flex min-h-96 flex-col items-center justify-center gap-6 p-8 text-center"
-        role="status"
-        aria-live="polite"
-      >
-        <span className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <LoaderCircle className="size-9 animate-spin" />
-        </span>
-        <div className="flex flex-col gap-2">
-          <h2 className="text-xl font-semibold">등록 완료 · 추론 가능 여부 확인 중</h2>
-          <p className="text-sm text-muted-foreground">등록한 {selectedModelAsset.label}의 구조와 정상적인 추론 가능 여부를 검증하고 있습니다.</p>
-          <p className="text-sm text-muted-foreground">
-            {redirectCountdown}초 후 홈으로 이동합니다.
-          </p>
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6" role="status" aria-live="polite">
+        <Card className="flex flex-col gap-5 p-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusPill tone="success">등록 완료</StatusPill>
+            <StatusPill tone="progress">추론 가능 여부 검증 중</StatusPill>
+          </div>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-xl font-semibold tracking-tight">자산이 등록되었습니다</h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {`등록한 ${selectedModelAsset.label}의 구조와 정상 추론 가능 여부를 백그라운드에서 검증하고 있습니다. 검증이 끝나면 모델 상세에서 상태가 '추론 가능'으로 바뀝니다.`}
+            </p>
+          </div>
+          <dl className="grid gap-3 rounded-md border border-border bg-surface p-4 text-sm sm:grid-cols-2">
+            <div className="flex flex-col gap-0.5">
+              <dt className="text-xs text-muted-foreground">데이터셋</dt>
+              <dd className="font-medium">{datasetInput.title || "—"}</dd>
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <dt className="text-xs text-muted-foreground">모델</dt>
+              <dd className="font-medium">{modelInput.title || "—"}</dd>
+            </div>
+          </dl>
+        </Card>
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold">다음 단계</h3>
+          <NextStepList
+            items={[
+              {
+                title: "모델 검증 상태 보기",
+                description: "모델 상세에서 검증 진행 상황과 결과를 확인합니다.",
+                href: completedModelId ? `/models/${completedModelId}` : "/models",
+                icon: ShieldCheck,
+                primary: true,
+              },
+              {
+                title: "추론 실행",
+                description: "검증이 끝나면 샘플 데이터로 바로 실행해 볼 수 있습니다.",
+                href: completedModelId ? `/models/${completedModelId}/deploy` : "/models",
+                icon: Play,
+              },
+              {
+                title: "다른 자산 등록",
+                description: "새 instance를 불러와 다른 모델·데이터를 등록합니다.",
+                href: "/register",
+                icon: FilePlus2,
+              },
+            ]}
+          />
         </div>
-        <Button onClick={() => router.replace("/")}>
-          지금 홈으로 이동
-          <ArrowRight data-icon="inline-end" />
-        </Button>
-      </Card>
+      </div>
     )
   }
 
   return (
     <div className="flex flex-col gap-10">
       {/* Step indicator */}
-      <div className="sticky top-16 z-10 -mx-4 border-b border-border bg-background/80 px-4 py-4 backdrop-blur-md md:-mx-8 md:px-8">
+      <div className="sticky top-14 z-10 -mx-4 border-b border-border bg-background/80 px-4 py-4 backdrop-blur-md md:-mx-8 md:px-8">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-2">
           {steps.map((s, i) => {
             const active = activeStep === s.id

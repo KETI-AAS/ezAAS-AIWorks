@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist_Mono, IBM_Plex_Sans_KR } from 'next/font/google'
 import './globals.css'
 
 import { AppShell } from '@/components/app-shell'
@@ -9,24 +9,29 @@ import { RefreshLoadingOverlay } from '@/components/refresh-loading-overlay'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
+const plexSans = IBM_Plex_Sans_KR({
+  variable: '--font-plex',
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  preload: false,
+})
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
 })
 
 export const metadata: Metadata = {
-  title: 'AI Model Registry — 제조 현장을 위한 AI 모델 탐색 플랫폼',
+  title: 'AI Works — 제조 현장을 위한 AI 탐색·실행·학습 플랫폼',
   description:
-    '제조 현장 엔지니어가 AI 모델을 쉽게 탐색하고 활용할 수 있는 AI Model Registry. 모델의 목적, 학습 데이터, 결과, 활용처를 직관적으로 이해하세요.',
+    '모델 허브의 instance와 실제 모델·데이터 파일을 등록하고, AI를 탐색하고 실행해 보며, 내 데이터로 자동 전처리와 학습까지 이어가는 제조 AI 플랫폼입니다.',
   generator: 'v0.app',
 }
 
 export const viewport: Viewport = {
   colorScheme: 'light dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: '#1a1d24' },
+    { media: '(prefers-color-scheme: light)', color: '#f9fafb' },
+    { media: '(prefers-color-scheme: dark)', color: '#16191d' },
   ],
 }
 
@@ -38,11 +43,10 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} bg-background`}
+      className={`${plexSans.variable} ${geistMono.variable} bg-background`}
       suppressHydrationWarning
     >
       <head>
-        <style>{`html[data-refreshing='true'] #refresh-loading-overlay { display: flex; }`}</style>
         <script
           dangerouslySetInnerHTML={{
             __html: `(() => {

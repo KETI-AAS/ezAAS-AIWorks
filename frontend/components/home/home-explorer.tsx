@@ -3,15 +3,15 @@
 import {
   ArrowRight,
   Boxes,
-  Building2,
+  Brain,
   ChevronDown,
-  Cpu,
-  Database,
-  Download,
+  FilePlus2,
+  Play,
   Search,
   SlidersHorizontal,
   X,
 } from "lucide-react"
+import Link from "next/link"
 import { useMemo, useState } from "react"
 
 import { PairCard } from "@/components/pairs/pair-card"
@@ -42,31 +42,34 @@ import {
   taskTypes,
 } from "@/lib/registry-data"
 
-const stats = [
+const journeys = [
   {
-    key: "datasets",
-    label: "AI 데이터셋",
-    value: datasets.length,
-    icon: Database,
+    title: "자산 등록",
+    description: "모델 허브 instance를 불러오고 실제 모델·데이터 파일을 연결합니다.",
+    meta: "등록 후 모델 파일 검증 진행",
+    href: "/register",
+    icon: FilePlus2,
   },
   {
-    key: "models",
-    label: "AI 모델",
-    value: models.length,
-    icon: Cpu,
-  },
-  { key: "pairs", label: "연계 페어", value: assetPairs.length, icon: Boxes },
-  {
-    key: "downloadable",
-    label: "다운로드 가능",
-    value: assetPairs.filter((pair) => pair.downloadable).length,
-    icon: Download,
+    title: "탐색",
+    description: "데이터셋과 모델의 관계, 성능, 학습 이력을 한 화면에서 확인합니다.",
+    meta: `연계 자산 ${assetPairs.length}개 · 모델 ${models.length}개 · 데이터셋 ${datasets.length}개`,
+    href: "/pairs",
+    icon: Boxes,
   },
   {
-    key: "providers",
-    label: "제공 기관",
-    value: 5,
-    icon: Building2,
+    title: "추론 실행",
+    description: "검증된 모델에 샘플 또는 내 데이터를 넣어 결과를 바로 확인합니다.",
+    meta: "모델 상세에서 실행",
+    href: "/models",
+    icon: Play,
+  },
+  {
+    title: "AI 학습",
+    description: "내 데이터를 업로드하면 매핑·검증·전처리를 거쳐 추가 학습합니다.",
+    meta: "7단계 가이드 진행",
+    href: "/training",
+    icon: Brain,
   },
 ]
 
@@ -132,27 +135,58 @@ export function HomeExplorer() {
   return (
     <div className="flex flex-col gap-8">
       {/* Hero */}
-      <section className="flex flex-col items-center gap-6 pt-6 text-center md:pt-10">
+      <section className="flex flex-col gap-8 pt-2 md:pt-6">
         <div className="flex flex-col gap-4">
-          <h1 className="mx-auto max-w-3xl text-3xl font-semibold tracking-tight text-balance md:text-5xl">
-            AAS 기반{" "}
-            <span className="text-primary">
-              제조 AI 자산 관리 플랫폼
-            </span>
+          <span className="font-mono text-xs font-medium uppercase tracking-wider text-primary">
+            ezAAS AI Works
+          </span>
+          <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-balance md:text-[2.5rem] md:leading-tight">
+            제조 현장의 AI를 찾고, 돌려보고, 내 데이터로 다시 학습합니다
           </h1>
-
-          <p className="mx-auto max-w-3xl text-base leading-relaxed text-muted-foreground md:text-lg">
-            표준화된 메타데이터를 활용하여 AI 모델과 데이터셋을
-            연결하고,
-            <br className="hidden md:block" />
-            <span className="md:hidden"> </span>
-            모델과 데이터 간의 관계와 이력을 탐색함으로써 제조 AI
-            자산의 재사용과 확산을 지원합니다.
+          <p className="max-w-2xl text-base leading-relaxed text-muted-foreground text-pretty">
+            모델 허브의 instance와 실제 모델·데이터 파일을 연결해 등록하면, 검증을 거쳐 누구나 탐색하고
+            추론을 실행하며 자동 전처리 기반의 추가 학습까지 이어갈 수 있습니다.
           </p>
         </div>
 
-        {/* Search + Explore */}
-        <div className="flex w-full max-w-2xl flex-col gap-3 rounded-2xl border border-border bg-card p-2 ring-1 ring-foreground/5 sm:flex-row sm:items-center">
+        <ol className="grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+          {journeys.map((journey, index) => {
+            const Icon = journey.icon
+            return (
+              <li key={journey.href} className="flex">
+                <Link
+                  href={journey.href}
+                  className="group flex w-full flex-col gap-4 bg-card p-5 transition-colors hover:bg-accent/40"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <Icon className="size-4" />
+                    </span>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {`STEP ${index + 1}`}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold">
+                      {journey.title}
+                      <ArrowRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                    <span className="text-sm leading-relaxed text-muted-foreground">{journey.description}</span>
+                  </div>
+                  <span className="mt-auto text-xs text-muted-foreground">{journey.meta}</span>
+                </Link>
+              </li>
+            )
+          })}
+        </ol>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold tracking-tight">바로 활용할 수 있는 연계 자산</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          데이터셋과 모델이 1:1로 연결된 조합입니다. 키워드로 찾거나 산업·데이터·Task로 좁혀 보세요.
+        </p>
+        <div className="flex w-full flex-col gap-3 rounded-lg border border-border bg-card p-2 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
@@ -173,36 +207,16 @@ export function HomeExplorer() {
                 ?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            탐색하기
+            결과 보기
             <ArrowRight data-icon="inline-end" />
           </Button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid w-full grid-cols-2 gap-3 pt-4 sm:grid-cols-3 lg:grid-cols-5">
-          {stats.map(({ key, label, value, icon: Icon }) => (
-            <div
-              key={key}
-              className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-5 ring-1 ring-foreground/5"
-            >
-              <Icon className="size-5 text-primary" />
-
-              <span className="text-2xl font-semibold tabular-nums md:text-3xl">
-                {value.toLocaleString()}
-              </span>
-
-              <span className="text-sm text-muted-foreground">
-                {label}
-              </span>
-            </div>
-          ))}
         </div>
       </section>
 
       {/* Filter toolbar */}
       <section
         id="results"
-        className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 ring-1 ring-foreground/5 md:p-5"
+        className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 md:p-5"
       >
         <div className="flex items-center gap-1.5 text-sm font-medium">
           <SlidersHorizontal className="size-4 text-primary" />
