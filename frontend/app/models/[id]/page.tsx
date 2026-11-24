@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { getModel, models } from "@/lib/registry-data"
-import { ModelDetail } from "@/components/model/model-detail"
+import { ModelDetailView } from "@/components/works/model-detail"
 
 export function generateStaticParams() {
   return models.map((m) => ({ id: m.id }))
@@ -29,5 +29,5 @@ export default async function ModelPage({
   const { id } = await params
   const model = getModel(id)
   if (!model) notFound()
-  return <ModelDetail model={model} />
+  return <ModelDetailView model={model} />
 }

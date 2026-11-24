@@ -1,12 +1,14 @@
 import type { Metadata } from "next"
 
-import { DatasetExplorer } from "@/components/registry/dataset-explorer"
+import { Explore } from "@/components/works/explore"
+import { parseTask } from "@/lib/works/parse-task"
 
 export const metadata: Metadata = {
-  title: "AI Dataset — AI Model Registry",
-  description: "등록된 AI 데이터셋 목록을 탐색하세요.",
+  title: "학습 데이터 · AI Works",
+  description: "AI 모델이 학습한 데이터셋과 그 데이터로 배운 AI를 함께 확인하세요.",
 }
 
-export default function DatasetsPage() {
-  return <DatasetExplorer />
+export default async function DatasetsPage({ searchParams }: { searchParams: Promise<{ task?: string }> }) {
+  const { task } = await searchParams
+  return <Explore mode="datasets" initialTask={parseTask(task)} />
 }

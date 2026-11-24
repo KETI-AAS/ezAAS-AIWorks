@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
 
-import { PairsExplorer } from "@/components/pairs/pairs-explorer"
+import { Explore } from "@/components/works/explore"
+import { parseTask } from "@/lib/works/parse-task"
 
 export const metadata: Metadata = {
-  title: "AI Asset Pairs — AI Model Registry",
-  description:
-    "AAS 메타데이터로 연결된 데이터셋–모델 페어를 탐색하세요. 하나의 데이터셋과 하나의 모델이 1:1로 연계됩니다.",
+  title: "모델 + 데이터 짝 · AI Works",
+  description: "각 AI 모델이 어떤 데이터로 학습했는지 짝으로 확인하세요.",
 }
 
-export default function PairsPage() {
-  return <PairsExplorer />
+export default async function PairsPage({ searchParams }: { searchParams: Promise<{ task?: string }> }) {
+  const { task } = await searchParams
+  return <Explore mode="pairs" initialTask={parseTask(task)} />
 }

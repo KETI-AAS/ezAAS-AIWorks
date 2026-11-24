@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { getDataset, datasets } from "@/lib/registry-data"
-import { DatasetDetail } from "@/components/dataset/dataset-detail"
+import { DatasetDetailView } from "@/components/works/dataset-detail"
 
 export function generateStaticParams() {
   return datasets.map((d) => ({ id: d.id }))
@@ -29,5 +29,5 @@ export default async function DatasetPage({
   const { id } = await params
   const dataset = getDataset(id)
   if (!dataset) notFound()
-  return <DatasetDetail dataset={dataset} />
+  return <DatasetDetailView dataset={dataset} />
 }

@@ -1,13 +1,17 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
-import { TrainingWorkbench } from "@/components/training/training-workbench"
+import { Training } from "@/components/works/training"
 
 export const metadata: Metadata = {
-  title: "AI Training — AI Model Registry",
-  description:
-    "등록된 AI 모델을 사용하여 내 데이터를 추가 학습(Fine-tuning)하고 새로운 모델을 생성하세요.",
+  title: "내 데이터로 학습 · AI Works",
+  description: "기존 AI를 바탕으로 우리 라인 데이터를 더 학습시켜 새 버전을 만들어 보세요.",
 }
 
 export default function TrainingPage() {
-  return <TrainingWorkbench />
+  return (
+    <Suspense>
+      <Training />
+    </Suspense>
+  )
 }

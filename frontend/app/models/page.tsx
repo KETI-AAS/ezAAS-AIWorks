@@ -1,12 +1,14 @@
 import type { Metadata } from "next"
 
-import { ModelExplorer } from "@/components/registry/model-explorer"
+import { Explore } from "@/components/works/explore"
+import { parseTask } from "@/lib/works/parse-task"
 
 export const metadata: Metadata = {
-  title: "AI Model — AI Model Registry",
-  description: "등록된 AI 모델 목록을 탐색하세요.",
+  title: "AI 찾아보기 · AI Works",
+  description: "제조 현장의 문제별로 쓸 수 있는 AI 모델을 찾아보고 바로 실행해 보세요.",
 }
 
-export default function ModelsPage() {
-  return <ModelExplorer />
+export default async function ModelsPage({ searchParams }: { searchParams: Promise<{ task?: string }> }) {
+  const { task } = await searchParams
+  return <Explore mode="models" initialTask={parseTask(task)} />
 }

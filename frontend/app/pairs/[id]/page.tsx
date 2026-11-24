@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
-import { PairDetail } from "@/components/pairs/pair-detail"
+import { PairDetailView } from "@/components/works/pair-detail"
 import { assetPairs, getAssetPair } from "@/lib/registry-data"
 
 export function generateStaticParams() {
@@ -30,5 +30,5 @@ export default async function PairPage({
   const { id } = await params
   const pair = getAssetPair(id)
   if (!pair) notFound()
-  return <PairDetail pair={pair} />
+  return <PairDetailView pair={pair} />
 }
